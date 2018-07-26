@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<DeviceTree> 
+	<Device name='D1' ip='' port='' user='' pwd=''>
+		<channel name='D1C1' channelnum='' protoc='' streamtype=''>
+			<saveDir direct='./D1C1'/>
+		</channel>
+		<channel name='D1C2' channelnum='' protoc='' streamtype=''>
+			<saveDir direct='./D1C2'/>
+		</channel>
+	</Device>
+	<Device name='D2' ip='' port='' user='' pwd=''>
+		<channel name='D2C1' channelnum='' protoc='' streamtype=''>
+			<saveDir direct='./D2C1'/>
+		</channel>
+		<channel name='D2C2' channelNUm='' protoc='' streamtype=''>
+			<saveDir direct='./D2C2'/>
+		</channel>
+	</Device>
+</DeviceTree> 
+
