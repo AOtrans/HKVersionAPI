@@ -37,7 +37,9 @@ TestForm::~TestForm()
 
 void TestForm::showVideo(cv::Mat img, ChannelData *cdata)
 {
+    qDebug() << "show";
     m_filter->changeMat(img);
+    ui->frame_1->update();
 }
 //todo login check
 void TestForm::initTree()
@@ -133,8 +135,8 @@ bool TestForm::testLogin(QString mapId)
     }
     else
     {
-        QString snum = QString::fromLocal8Bit((char*)device->m_deviceinfo.sSerialNumber, SERIALNO_LEN);
-
+        QString snum = QString::fromLocal8Bit((char*)device->m_deviceinfo.sSerialNumber);
+        qDebug() << "Device Serial:" << snum;
         device->setSerialNum(snum);
 
 
@@ -619,6 +621,21 @@ void TestForm::onTreeDoubleClicked(QModelIndex index)
         }
         else
         {
+            foreach(QString mapId, m_deviceList.keys())
+            {
+                DeviceData *ddata = &m_deviceList[mapId];
+
+                QList<ChannelData> &clist = ddata->getChannelData();
+                for(int i = 0; i<clist.size(); i++)
+                {
+                    ChannelData *cdata = &clist[i];
+                    if(cdata->isPlaying == true)
+                    {
+                        stopRealPlay(cdata);
+                    }
+                }
+            }
+
             startRealPlay(cdata);
         }
     }
