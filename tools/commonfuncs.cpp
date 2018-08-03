@@ -141,7 +141,7 @@ bool analysis(QMap<QString, DeviceData> &deviceList, QString xmlFilePath)
             if(reader.name() == "Device")
             {
                 deviceList.insert(currentDevice->getMapId(), *currentDevice);
-                currentDevice->debug();
+                //currentDevice->debug();
             }
         }
 
