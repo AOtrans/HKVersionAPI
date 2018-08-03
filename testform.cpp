@@ -700,24 +700,53 @@ void TestForm::startRealPlay(ChannelData *cdata)
         cdata->setRealhandle(realHandle);
         //设置设备是否在预览状态标签值
         cdata->isPlaying = true;
+        m_filter->setBlackbg(false);
     }
 }
 
 void TestForm::stopRealPlay(ChannelData *cdata)
 {
     NET_DVR_StopRealPlay(cdata->getRealhandle());
+
+    PlayM4_FreePort(cdata->getDecodePort());
+    cdata->setDecodePort(-1);
     cdata->setRealhandle(-1);
+
     cdata->isPlaying = false;
+
+    m_filter->setBlackbg(true);
+    ui->frame_1->update();
+}
+
+bool PainterEvent::getBlackbg() const
+{
+    return blackbg;
+}
+
+void PainterEvent::setBlackbg(bool value)
+{
+    blackbg = value;
 }
 
 bool PainterEvent::eventFilter(QObject *obj, QEvent *event)
 {
-    if (event->type() == QEvent::Paint && frameMat.data != NULL) {
-        QFrame *frame = (QFrame*)obj;
-        QPainter painter(frame);
+    if (event->type() == QEvent::Paint) {
+        if( blackbg == false && frameMat.data != NULL)
+        {
+            QFrame *frame = (QFrame*)obj;
+            QPainter painter(frame);
 
-        painter.drawPixmap(0, 0, frame->width(), frame->height(), QPixmap::fromImage(cvMat2Image(frameMat)) );
+            painter.drawPixmap(0, 0, frame->width(), frame->height(), QPixmap::fromImage(cvMat2Image(frameMat)) );
+        }
+        else
+        {
+            QFrame *frame = (QFrame*)obj;
+            QPainter painter(frame);
 
+            QPixmap bg(frame->width(), frame->height());
+            bg.fill(QColor(0, 0, 0));
+            painter.drawPixmap(0, 0, frame->width(), frame->height(), bg);
+        }
     }
 
     // standard event processing

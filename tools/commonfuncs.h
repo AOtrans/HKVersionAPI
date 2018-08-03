@@ -34,7 +34,7 @@ bool matSave2JPG(cv::Mat &mat, int id, void *dwUser);
 void showReal(cv::Mat &img, void *dwUser);
 
 void CALLBACK DecCBFun(int lPort,char * pBuf,int nSize,FRAME_INFO * pFrameInfo, void* dwUser,int nReserved2);
-void CALLBACK  DataCallBack(LONG lRealHandle,DWORD dwDataType,BYTE *pBuffer,DWORD  dwBufSize, void* dwUser);
+void CALLBACK DataCallBack(LONG lRealHandle,DWORD dwDataType,BYTE *pBuffer,DWORD  dwBufSize, void* dwUser);
 void CALLBACK MessCallBack_V30(LONG lCommand, NET_DVR_ALARMER *pAlarmer, char *pAlarmInfo, DWORD dwBufLen, void* pUser);
 void CALLBACK ExceptionCallBack(DWORD dwType, LONG lUserID, LONG lHandle, void *pUser);
 
