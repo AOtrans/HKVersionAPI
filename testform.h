@@ -23,11 +23,16 @@ public:
     bool changeMat(cv::Mat mat)
     {
         frameMat = mat;
+
         return true;
     }
 
+    bool getBlackbg() const;
+    void setBlackbg(bool value);
+
 private:
     cv::Mat frameMat;
+    bool blackbg = true;
 
 protected:
     bool eventFilter(QObject *obj, QEvent *event);
