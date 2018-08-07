@@ -36,7 +36,10 @@ SOURCES += main.cpp \
     tools/IniUtil.cpp \
     tools/commonfuncs.cpp \
     tree/mytreeitem.cpp \
-    dialog/devicedialog.cpp
+    dialog/devicedialog.cpp \
+    tools/senderthread.cpp \
+    tools/conversion.cpp \
+    tools/pyloader.cpp
 
 HEADERS  += \
     common.h \
@@ -51,7 +54,10 @@ HEADERS  += \
     tools/IniUtil.h \
     tools/commonfuncs.h \
     tree/mytreeitem.h \
-    dialog/devicedialog.h
+    dialog/devicedialog.h \
+    tools/senderthread.h \
+    tools/conversion.h \
+    tools/pyloader.h
 
 FORMS    += \
     testform.ui \
@@ -69,3 +75,12 @@ LIBS += -lopencv_core \
 -lopencv_contrib \
 -lopencv_legacy \
 -lopencv_flann
+
+
+INCLUDEPATH +=  /usr/include/python2.7\
+                /usr/include/x86_64-linux-gnu/python2.7\
+                /usr/local/lib/python2.7/dist-packages/numpy/core/include\
+                -fno-strict-aliasing -Wdate-time -D_FORTIFY_SOURCE=2 -g -fstack-protector-strong -Wformat -Werror=format-security  -DNDEBUG -g -fwrapv -O2 -Wall -Wstrict-prototypes
+
+LIBS += -L/usr/lib/python2.7/config-x86_64-linux-gnu -L/usr/lib -lpython2.7\
+        -lpthread -ldl  -lutil -lm  -Xlinker -export-dynamic -Wl,-O1 -Wl,-Bsymbolic-functions

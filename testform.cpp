@@ -6,6 +6,8 @@
 #include <unistd.h>
 #include <QMenu>
 #include <QUuid>
+#include "tools/pyloader.h"
+PYLoader py_loader;
 
 TestForm::TestForm(QWidget *parent) :
     QWidget(parent),
@@ -24,6 +26,12 @@ TestForm::TestForm(QWidget *parent) :
         m_filter = new PainterEvent(this);
         ui->frame_1->installEventFilter(m_filter);
     }
+
+    if(!py_loader.initPY())
+    {
+        QMessageBox::warning(this, "error", "load PY func failed");
+    }
+
 }
 
 TestForm::~TestForm()
@@ -167,7 +175,7 @@ bool TestForm::testLogin(QString mapId)
                                       &ipcfg, sizeof(NET_DVR_IPPARACFG),&Bytesreturned))
             {
                 //Camera
-                qDebug() << "(this is Cameral)" << "getIPPARACFG erro:" << NET_DVR_GetLastError();
+                qDebug() << "(this is Cameral)";
                 for (int i=devicecfg.byStartChan;i<=devicecfg.byChanNum ;i++)
                 {
                     ChannelData *newChannel = new ChannelData;
@@ -668,6 +676,10 @@ void TestForm::startRealPlay(ChannelData *cdata)
     //取流
     int realHandle = NET_DVR_RealPlay_V30(userID, clientinfo, DataCallBack, cdata,0);
 
+    //1111111111111111111
+    cdata->startLS();
+    //1111111111111111111
+
     qDebug("realPlay---Protocal:%d", clientinfo->lLinkMode);
 
     if (realHandle < 0)
@@ -711,6 +723,7 @@ void TestForm::stopRealPlay(ChannelData *cdata)
     PlayM4_FreePort(cdata->getDecodePort());
     cdata->setDecodePort(-1);
     cdata->setRealhandle(-1);
+    cdata->stopLS();
 
     cdata->isPlaying = false;
 

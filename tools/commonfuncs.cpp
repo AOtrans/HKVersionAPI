@@ -327,6 +327,7 @@ void showReal(cv::Mat &img, void *dwUser)
 void CALLBACK DecCBFun(int lPort,char * pBuf,int nSize,FRAME_INFO * pFrameInfo, void* dwUser,int nReserved2)
 {
     long lFrameType = pFrameInfo->nType;
+
     if (lFrameType ==T_AUDIO16)
     {
 
@@ -342,8 +343,13 @@ void CALLBACK DecCBFun(int lPort,char * pBuf,int nSize,FRAME_INFO * pFrameInfo, 
         cv::Mat img = buf2cvMat((uchar*)pBuf, width, height);
 
         //qDebug() << matSave2JPG(img, pFrameInfo->dwFrameNum, dwUser);
+        ChannelData *cdata = (ChannelData*)dwUser;
+        cdata->increaseImgNO();
 
-        form->showVideo(img, (ChannelData*)dwUser);
+        if(cdata->getImageNO() % IMAGE_STEP == 0)
+            cdata->appendImage(img);
+
+        form->showVideo(img, cdata);
 //        showReal(img, dwUser);
 
 //        AVFrame *pict = buf2Frame((uchar*)pBuf, width, height);
@@ -379,7 +385,7 @@ void CALLBACK  DataCallBack(LONG lRealHandle,DWORD dwDataType,BYTE *pBuffer,DWOR
     DWORD dRet = 0;
 
     LONG lPort = ((ChannelData*)dwUser)->getDecodePort();
-    qDebug("RealHandle[%d]: Get StreamData! Type[%d], BufSize[%d], pBuffer:%p\n", lRealHandle, dwDataType, dwBufSize, pBuffer);
+    //qDebug("RealHandle[%d]: Get StreamData! Type[%d], BufSize[%d], pBuffer:%p\n", lRealHandle, dwDataType, dwBufSize, pBuffer);
 
     switch (dwDataType)
     {
@@ -647,4 +653,9 @@ QImage cvMat2Image(cv::Mat src)
     dest.bits(); // enforce deep copy, see documentation
 
     return dest;
+}
+
+PyObject *initPYFunc()
+{
+
 }
