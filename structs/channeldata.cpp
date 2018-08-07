@@ -8,7 +8,7 @@
  *      Author          :       wanggp@hikvision.com
  *****************************************************************************************/
 #include "channeldata.h"
-
+#include <QDebug>
 /************************************************************************
  *        Function            :  ChannelData
  *        Description         :  构造函数
@@ -20,9 +20,41 @@ ChannelData::ChannelData()
 {
     m_qchannelname = "";
     m_ichannelnum = -1;
-	m_irealhandle = -1;
+    m_irealhandle = -1;
     m_eprotocoltype = TCP;
     m_estreamtype = MAINSTREAM;
+
+    queueMtx = new QMutex();
+    st = new SenderThread(this);
+}
+
+ChannelData::ChannelData(const ChannelData& cdata)
+{
+    //通道名称
+    m_qchannelname = cdata.m_qchannelname;
+
+    m_serial = cdata.m_serial;
+
+    isPlaying = cdata.isPlaying;
+    //通道号
+    m_ichannelnum = cdata.m_ichannelnum;
+    //传输协议，有TCP,UDP，多播，和RTP等
+    m_eprotocoltype = cdata.m_eprotocoltype;
+    //码流类型，分主码流和子码流
+    m_estreamtype = cdata.m_estreamtype;
+    m_ilinkmode = cdata.m_ilinkmode;
+    m_irealhandle = cdata.m_irealhandle;
+    decodePort = cdata.decodePort;
+
+    parentDevice = cdata.parentDevice;
+
+    saveDir = cdata.saveDir;
+    imageQueue = cdata.imageQueue;
+
+    queueMtx = new QMutex();
+
+    imageNO = cdata.imageNO;
+    st = new SenderThread(this);
 }
 
 /************************************************************************
@@ -34,7 +66,17 @@ ChannelData::ChannelData()
 *************************************************************************/
 ChannelData::~ChannelData()
 {
+    if(queueMtx)
+    {
+        delete queueMtx;
+        queueMtx = NULL;
+    }
 
+    if(st)
+    {
+        delete st;
+        st = NULL;
+    }
 }
 
 /************************************************************************
@@ -198,51 +240,51 @@ void ChannelData::setLinkMode()
     switch (m_estreamtype)
     {
     case MAINSTREAM:
-            switch (m_eprotocoltype)
-            {
-            case TCP:
-                m_ilinkmode =0x0;
-                break;
-            case UDP:
-                m_ilinkmode=0x1;
-                break;
-            case MCAST :
-                m_ilinkmode=0x2;
-                break;
-            case RTP:
-                m_ilinkmode=0x3;
-                break;
-            case RTP_RTSP:
-                m_ilinkmode=0x4;
-                break;
-            default :
-                m_ilinkmode=0x0;
-                break;
-            }
+        switch (m_eprotocoltype)
+        {
+        case TCP:
+            m_ilinkmode =0x0;
             break;
+        case UDP:
+            m_ilinkmode=0x1;
+            break;
+        case MCAST :
+            m_ilinkmode=0x2;
+            break;
+        case RTP:
+            m_ilinkmode=0x3;
+            break;
+        case RTP_RTSP:
+            m_ilinkmode=0x4;
+            break;
+        default :
+            m_ilinkmode=0x0;
+            break;
+        }
+        break;
     case SUBSTREAM:
-            switch (m_eprotocoltype)
-            {
-            case TCP:
-                m_ilinkmode =0x80000000;
-                break;
-            case UDP:
-                m_ilinkmode=0x80000001;
-                break;
-            case MCAST :
-                m_ilinkmode=0x80000002;
-                break;
-            case RTP:
-                m_ilinkmode=0x80000003;
-                break;
-            case RTP_RTSP:
-                m_ilinkmode=0x80000004;
-                break;
-            default :
-                m_ilinkmode=0x80000000;
-                break;
-            }
+        switch (m_eprotocoltype)
+        {
+        case TCP:
+            m_ilinkmode =0x80000000;
             break;
+        case UDP:
+            m_ilinkmode=0x80000001;
+            break;
+        case MCAST :
+            m_ilinkmode=0x80000002;
+            break;
+        case RTP:
+            m_ilinkmode=0x80000003;
+            break;
+        case RTP_RTSP:
+            m_ilinkmode=0x80000004;
+            break;
+        default :
+            m_ilinkmode=0x80000000;
+            break;
+        }
+        break;
         break;
     default :
         break;
@@ -299,4 +341,78 @@ DeviceData *ChannelData::getParentDevice() const
 void ChannelData::setParentDevice(DeviceData *value)
 {
     parentDevice = value;
+}
+
+PyObject* ChannelData::makeImagePackge()
+{
+    queueMtx->lock();
+
+    if(imageQueue.size() == MAX_QUEUE)
+    {
+        NDArrayConverter cvt;
+        PyObject* tp = PyList_New(MAX_QUEUE);
+
+        for(int i = 0;i < MAX_QUEUE; i++)
+        {
+            cv::Mat src = imageQueue.at(i);
+            cv::Mat img(src.rows, src.cols, src.type());
+            cv::cvtColor(src, img, CV_BGR2RGB);
+
+            PyObject *it = cvt.toNDArray(img );
+
+            qDebug() << "insert list"<< PyList_SetItem(tp , i, it);
+        }
+
+        imageQueue.clear();
+        queueMtx->unlock();
+        return tp;
+    }
+    else
+    {
+
+        queueMtx->unlock();
+        return NULL;
+    }
+}
+
+void ChannelData::appendImage(cv::Mat image)
+{
+    queueMtx->lock();
+
+    if(imageQueue.size() == MAX_QUEUE)
+    {
+        imageQueue.removeFirst();
+    }
+
+    imageQueue.enqueue(image);
+
+    queueMtx->unlock();
+}
+
+int ChannelData::getImageNO()
+{
+    return imageNO;
+}
+
+void ChannelData::increaseImgNO()
+{
+    ++imageNO;
+    qDebug() << "----------------------------------------" << imageNO;
+}
+
+void ChannelData::resetImgNO()
+{
+    imageNO = 0;
+}
+
+void ChannelData::startLS()
+{
+    st->start();
+}
+
+void ChannelData::stopLS()
+{
+    st->requestInterruption();
+    st->quit();
+    st->wait();
 }

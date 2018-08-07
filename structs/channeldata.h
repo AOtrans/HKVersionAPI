@@ -10,12 +10,22 @@
 #ifndef CHANNELDATA_H_
 #define CHANNELDATA_H_
 
-
+#include <opencv/cv.h>
+#include <opencv/highgui.h>
 #include <QString>
+#include <QQueue>
+#include <QMutex>
+#include "tools/senderthread.h"
+#include "tools/conversion.h"
+
+class SenderThread;
 
 enum PROTOCOL{ TCP = 0, UDP, MCAST, RTP, RTP_RTSP};
 enum STREAMTYPE{ MAINSTREAM = 0, SUBSTREAM};
 class DeviceData;
+
+#define MAX_QUEUE 16
+#define IMAGE_STEP 5
 
 class ChannelData
 {
@@ -25,6 +35,7 @@ public:
     friend class TestForm;
 
     ChannelData();
+    ChannelData(const ChannelData& cdata);
     ~ChannelData();
 
     void setChannelName(QString name);
@@ -59,6 +70,15 @@ public:
     DeviceData *getParentDevice() const;
     void setParentDevice(DeviceData *value);
 
+    PyObject* makeImagePackge();
+    void appendImage(cv::Mat image);
+
+    int getImageNO();
+    void increaseImgNO();
+    void resetImgNO();
+
+    void startLS();
+    void stopLS();
 private:
     //通道名称
     QString m_qchannelname;
@@ -79,6 +99,13 @@ private:
     DeviceData *parentDevice;
 
     QString saveDir;
+    QQueue<cv::Mat> imageQueue;
+
+    QMutex *queueMtx = NULL;
+
+    int imageNO = 0;
+    SenderThread* st = NULL;
+
 };
 #endif /* CHANNELDATA_H_ */
 
