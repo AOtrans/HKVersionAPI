@@ -6,8 +6,6 @@
 #include <unistd.h>
 #include <QMenu>
 #include <QUuid>
-#include "tools/pyloader.h"
-PYLoader py_loader;
 
 TestForm::TestForm(QWidget *parent) :
     QWidget(parent),
@@ -17,20 +15,16 @@ TestForm::TestForm(QWidget *parent) :
 
     if(sdkInit(this))
     {
-        if(!analysis(m_deviceList, xmlPath))
+        if(!analysis(m_deviceList, XML_PATH))
             qDebug() << "analysis failed";
 
         loginAllDevice();
         initTree();
-
-        m_filter = new PainterEvent(this);
-        ui->frame_1->installEventFilter(m_filter);
     }
 
-    if(!py_loader.initPY())
-    {
-        QMessageBox::warning(this, "error", "load PY func failed");
-    }
+    DisplayFrame *frame = new DisplayFrame(this, 0);
+    m_displayFrames.append(frame);
+    ui->gridLayout->addWidget(frame);
 
 }
 
@@ -45,11 +39,13 @@ TestForm::~TestForm()
 
 void TestForm::showVideo(cv::Mat img, ChannelData *cdata)
 {
-    qDebug() << "show";
-    m_filter->changeMat(img);
-    ui->frame_1->update();
+//    cv::resize(img, img, cv::Size(cdata->frame->width(), cdata->frame->height()));
+    cdata->frame->changeMat(img);
+    cdata->frame->update();
+//    cdata->frame->getPainter()->changeMat(img);
+//    cdata->frame->repaint();
 }
-//todo login check
+
 void TestForm::initTree()
 {
     if(m_treeModel == NULL)
@@ -130,10 +126,10 @@ bool TestForm::testLogin(QString mapId)
 
     //先要尝试登陆设备，然后还要判断通道情况
     device->m_iuserid = NET_DVR_Login_V30(device->getIP().toLatin1().data(),
-                                                 device->getPort(),
-                                                 device->getUsrName().toLatin1().data(),
-                                                 device->getPasswd().toLatin1().data(),
-                                                 &device->m_deviceinfo);
+                                          device->getPort(),
+                                          device->getUsrName().toLatin1().data(),
+                                          device->getPasswd().toLatin1().data(),
+                                          &device->m_deviceinfo);
 
     //登录失败直接返回
     if (device->m_iuserid < 0)
@@ -275,258 +271,258 @@ void TestForm::loginAllDevice()
     }
 }
 
-void TestForm::on_pbRealPaly_clicked()
-{
-    qDebug() << "------------------RealPlay--------------------";
+//void TestForm::on_pbRealPaly_clicked()
+//{
+//    qDebug() << "------------------RealPlay--------------------";
 
-    if(currentDevice == NULL)
-    {
-        qDebug() << "please login first";
-        return;
-    }
+//    if(currentDevice == NULL)
+//    {
+//        qDebug() << "please login first";
+//        return;
+//    }
 
-    int userID = currentDevice->getUsrID();
-    ChannelData currentChannel = currentDevice->m_qlistchanneldata.at(0);
+//    int userID = currentDevice->getUsrID();
+//    ChannelData currentChannel = currentDevice->m_qlistchanneldata.at(0);
 
-    int channelNum = currentChannel.getChannelNum();
-    //computed by stream type and protocl type
-    int linkMode = currentChannel.getLinkMode();
-
-
-    //-----------------------------------------
-
-    //设置预览打开的相关参数
-    NET_DVR_CLIENTINFO *clientinfo = new NET_DVR_CLIENTINFO;
-
-    clientinfo->hPlayWnd = NULL;
-    clientinfo->lChannel = channelNum;
-    clientinfo->lLinkMode = linkMode;
-
-    char tmp[128] = {0};
-    sprintf(tmp, "%s", currentDevice->getMultiCast().toLatin1().data());
-    clientinfo->sMultiCastIP = tmp;
-
-    //取流
-    int realHandle = NET_DVR_RealPlay_V30(userID, clientinfo, DataCallBack,NULL,0);
-    qDebug("realPlay---Protocal:%d", clientinfo->lLinkMode);
-
-    if (realHandle < 0)
-    {
-        QMessageBox::information(this, tr("NET_DVR_RealPlay error"), tr("SDK_LASTERROR=%1").arg(NET_DVR_GetLastError()));
-    }
-    else
-    {
-        if (currentChannel.getChannelNum()>32)
-        {
-            NET_DVR_IPPARACFG ipcfg;
-            DWORD Bytesreturned;
-            if (!NET_DVR_GetDVRConfig(userID, NET_DVR_GET_IPPARACFG,0,
-                                      &ipcfg, sizeof(NET_DVR_IPPARACFG),&Bytesreturned))
-            {
-                QMessageBox::information(this, tr("NET_DVR_GetDVRConfig"), \
-                                         tr("SDK_LAST_ERROR=%1").arg(NET_DVR_GetLastError()));
-
-                return ;
-            }
-            if (ipcfg.struIPChanInfo[currentChannel.getChannelNum()-32-1].byEnable == 0)
-            {
-                QMessageBox::information(this,tr("NET_DVR_RealPlay error"), \
-                                         tr("该通道不在线，预览失败"));
-
-                return ;
-            }
-        }
-
-        //设置设备是否在预览状态标签值
-        currentDevice->setRealPlayLabel(1);
-    }
-}
+//    int channelNum = currentChannel.getChannelNum();
+//    //computed by stream type and protocl type
+//    int linkMode = currentChannel.getLinkMode();
 
 
+//    //-----------------------------------------
 
-//unknow problem ,cause too slow
-void TestForm::on_pbPalyBack_clicked()
-{
-    int userID = currentDevice->getUsrID();
-    ChannelData currentChannel = currentDevice->m_qlistchanneldata.at(0);
+//    //设置预览打开的相关参数
+//    NET_DVR_CLIENTINFO *clientinfo = new NET_DVR_CLIENTINFO;
 
-    int channelNum = currentChannel.getChannelNum();
+//    clientinfo->hPlayWnd = NULL;
+//    clientinfo->lChannel = channelNum;
+//    clientinfo->lLinkMode = linkMode;
 
-    NET_DVR_TIME remoteplaystarttime;
-    NET_DVR_TIME remoteplaystoptime;
+//    char tmp[128] = {0};
+//    sprintf(tmp, "%s", currentDevice->getMultiCast().toLatin1().data());
+//    clientinfo->sMultiCastIP = tmp;
 
-    //get the begin and end date time
-    remoteplaystarttime.dwYear = 2018;
-    remoteplaystarttime.dwMonth = 7;
-    remoteplaystarttime.dwDay = 12;
-    remoteplaystarttime.dwHour = 0;
-    remoteplaystarttime.dwMinute = 0;
-    remoteplaystarttime.dwSecond = 0;
+//    //取流
+//    int realHandle = NET_DVR_RealPlay_V30(userID, clientinfo, DataCallBack,NULL,0);
+//    qDebug("realPlay---Protocal:%d", clientinfo->lLinkMode);
 
-    remoteplaystoptime.dwYear = 2018;
-    remoteplaystoptime.dwMonth = 7;
-    remoteplaystoptime.dwDay = 12;
-    remoteplaystoptime.dwHour = 23;
-    remoteplaystoptime.dwMinute = 59;
-    remoteplaystoptime.dwSecond = 59;
+//    if (realHandle < 0)
+//    {
+//        QMessageBox::information(this, tr("NET_DVR_RealPlay error"), tr("SDK_LASTERROR=%1").arg(NET_DVR_GetLastError()));
+//    }
+//    else
+//    {
+//        if (currentChannel.getChannelNum()>32)
+//        {
+//            NET_DVR_IPPARACFG ipcfg;
+//            DWORD Bytesreturned;
+//            if (!NET_DVR_GetDVRConfig(userID, NET_DVR_GET_IPPARACFG,0,
+//                                      &ipcfg, sizeof(NET_DVR_IPPARACFG),&Bytesreturned))
+//            {
+//                QMessageBox::information(this, tr("NET_DVR_GetDVRConfig"), \
+//                                         tr("SDK_LAST_ERROR=%1").arg(NET_DVR_GetLastError()));
 
-    //----------------------------------------------------------
-    int playBackHandle = NET_DVR_PlayBackByTime(userID, channelNum, &remoteplaystarttime, &remoteplaystoptime, NULL);
+//                return ;
+//            }
+//            if (ipcfg.struIPChanInfo[currentChannel.getChannelNum()-32-1].byEnable == 0)
+//            {
+//                QMessageBox::information(this,tr("NET_DVR_RealPlay error"), \
+//                                         tr("该通道不在线，预览失败"));
+
+//                return ;
+//            }
+//        }
+
+//        //设置设备是否在预览状态标签值
+//        currentDevice->setRealPlayLabel(1);
+//    }
+//}
 
 
 
-
-    NET_DVR_SetPlayDataCallBack_V40(playBackHandle, DataCallBack, NULL);
-
-    if (!NET_DVR_PlayBackControl(playBackHandle, NET_DVR_PLAYSTART, 0, NULL))
-    {
-        qDebug() << "NET_DVR_PlayBackControl failed" << tr("SDK_Last_Error =%1").arg(NET_DVR_GetLastError());
-        return;
-    }
-}
-
-//check file exists from start to end
-void TestForm::on_pbCheckPlayBack_clicked()
-{
-
-    ChannelData currentChannel = currentDevice->m_qlistchanneldata.at(1);
-
-    int channelNum = currentChannel.getChannelNum();
-
-    uint filetype = 0xff;
-
-
-    uint fileattr = 0xff;
-
-
-    NET_DVR_TIME remotestarttime;
-    NET_DVR_TIME remotestoptime;
-
-    //get the begin and end date time
-    remotestarttime.dwYear = 2018;
-    remotestarttime.dwMonth = 7;
-    remotestarttime.dwDay = 1;
-    remotestarttime.dwHour = 0;
-    remotestarttime.dwMinute = 0;
-    remotestarttime.dwSecond = 0;
-
-    remotestoptime.dwYear = 2018;
-    remotestoptime.dwMonth = 7;
-    remotestoptime.dwDay = 12;
-    remotestoptime.dwHour = 23;
-    remotestoptime.dwMinute = 59;
-    remotestoptime.dwSecond = 59;
-
-    //---------------------------------------------------------------
-    bool bGetFile = true;
-    int ret =0;
-    int hFile =0;
-
-    //call the hcnetsdk interface
-    NET_DVR_FILECOND *m_pbpDvrFile = new NET_DVR_FILECOND;
-
-    //give the variant prepare value
-    m_pbpDvrFile->struStartTime = remotestarttime;
-    m_pbpDvrFile->struStopTime = remotestoptime;
-    m_pbpDvrFile->lChannel = channelNum;
-
-    m_pbpDvrFile->dwIsLocked = fileattr;
-    m_pbpDvrFile->dwFileType = filetype;
-
-    //Search fot file
-    hFile = NET_DVR_FindFile_V30(currentDevice->getUsrID(), m_pbpDvrFile);
-    if (hFile < 0)
-    {
-        QMessageBox::information(this,tr(" NET_DVR_FindFile_V30 "),
-            tr("SDK_LASTERROR=%1").arg(NET_DVR_GetLastError()));
-
-
-        return;
-    }
-    else
-    {
-
-        NET_DVR_FINDDATA_V30 *fileData = new NET_DVR_FINDDATA_V30;
-        while (bGetFile)
-        {
-            ret = NET_DVR_FindNextFile_V30(hFile, fileData);
-            switch (ret)
-            {
-                case NET_DVR_FILE_SUCCESS:
-                    qDebug() << "find file" << fileData->sFileName;
-                    break;
-
-                case NET_DVR_FILE_NOFIND:
-                    qDebug() << "no file find";
-                    NET_DVR_FindClose_V30(hFile);
-                    bGetFile = FALSE;
-                    break;
-
-                case NET_DVR_ISFINDING:
-                    QMessageBox::information(this,tr(" NET_DVR_FindFile_V30"),
-                        tr("Is finding now,wait a moment!"));
-
-                    usleep(200*1000);
-
-                    break;
-
-                case NET_DVR_NOMOREFILE:
-                    qDebug() << "no more file";
-                    NET_DVR_FindClose_V30(hFile);
-                    bGetFile = FALSE;
-                    break;
-
-                case NET_DVR_FILE_EXCEPTION:
-                    qDebug() << "File Exception!";
-                    NET_DVR_FindClose_V30(hFile);
-                    bGetFile = FALSE;
-                    break;
-
-                default:
-                    qDebug() << "Error occured";
-                    NET_DVR_FindClose_V30(hFile);
-                    bGetFile = FALSE;
-                    break;
-            }
-        }
-        return ;
-    }
-}
-
-//test if can do capture(about 300ms, too slow)
-void TestForm::on_pbCapture_clicked()
-{
-    int userID = currentDevice->getUsrID();
+////unknow problem ,cause too slow
+//void TestForm::on_pbPalyBack_clicked()
+//{
+//    int userID = currentDevice->getUsrID();
 //    ChannelData currentChannel = currentDevice->m_qlistchanneldata.at(0);
 
 //    int channelNum = currentChannel.getChannelNum();
 
-//    NET_DVR_JPEGPARA para;
-//    para.wPicQuality = 0;
-//    para.wPicSize = 5;
+//    NET_DVR_TIME remoteplaystarttime;
+//    NET_DVR_TIME remoteplaystoptime;
 
-//    qDebug() << NET_DVR_CaptureJPEGPicture(userID, channelNum, &para, "./1.jpg");
+//    //get the begin and end date time
+//    remoteplaystarttime.dwYear = 2018;
+//    remoteplaystarttime.dwMonth = 7;
+//    remoteplaystarttime.dwDay = 12;
+//    remoteplaystarttime.dwHour = 0;
+//    remoteplaystarttime.dwMinute = 0;
+//    remoteplaystarttime.dwSecond = 0;
 
-    char in[200]="<?xml version=\"1.0\" encoding=\"utf-8\"?> \
-            <JpegCaptureAbility version=\"2.0\"> \
-                    <channelNO>1</channelNO>\
-            </JpegCaptureAbility> ";
-    char out[2000];
-    qDebug()<<in;
-    qDebug() << NET_DVR_GetDeviceAbility(userID,DEVICE_JPEG_CAP_ABILITY,in,200,out,2000);
-    qDebug()<<out;
+//    remoteplaystoptime.dwYear = 2018;
+//    remoteplaystoptime.dwMonth = 7;
+//    remoteplaystoptime.dwDay = 12;
+//    remoteplaystoptime.dwHour = 23;
+//    remoteplaystoptime.dwMinute = 59;
+//    remoteplaystoptime.dwSecond = 59;
 
-    qDebug() << NET_DVR_GetLastError();
-}
+//    //----------------------------------------------------------
+//    int playBackHandle = NET_DVR_PlayBackByTime(userID, channelNum, &remoteplaystarttime, &remoteplaystoptime, NULL);
+
+
+
+
+//    NET_DVR_SetPlayDataCallBack_V40(playBackHandle, DataCallBack, NULL);
+
+//    if (!NET_DVR_PlayBackControl(playBackHandle, NET_DVR_PLAYSTART, 0, NULL))
+//    {
+//        qDebug() << "NET_DVR_PlayBackControl failed" << tr("SDK_Last_Error =%1").arg(NET_DVR_GetLastError());
+//        return;
+//    }
+//}
+
+////check file exists from start to end
+//void TestForm::on_pbCheckPlayBack_clicked()
+//{
+
+//    ChannelData currentChannel = currentDevice->m_qlistchanneldata.at(1);
+
+//    int channelNum = currentChannel.getChannelNum();
+
+//    uint filetype = 0xff;
+
+
+//    uint fileattr = 0xff;
+
+
+//    NET_DVR_TIME remotestarttime;
+//    NET_DVR_TIME remotestoptime;
+
+//    //get the begin and end date time
+//    remotestarttime.dwYear = 2018;
+//    remotestarttime.dwMonth = 7;
+//    remotestarttime.dwDay = 1;
+//    remotestarttime.dwHour = 0;
+//    remotestarttime.dwMinute = 0;
+//    remotestarttime.dwSecond = 0;
+
+//    remotestoptime.dwYear = 2018;
+//    remotestoptime.dwMonth = 7;
+//    remotestoptime.dwDay = 12;
+//    remotestoptime.dwHour = 23;
+//    remotestoptime.dwMinute = 59;
+//    remotestoptime.dwSecond = 59;
+
+//    //---------------------------------------------------------------
+//    bool bGetFile = true;
+//    int ret =0;
+//    int hFile =0;
+
+//    //call the hcnetsdk interface
+//    NET_DVR_FILECOND *m_pbpDvrFile = new NET_DVR_FILECOND;
+
+//    //give the variant prepare value
+//    m_pbpDvrFile->struStartTime = remotestarttime;
+//    m_pbpDvrFile->struStopTime = remotestoptime;
+//    m_pbpDvrFile->lChannel = channelNum;
+
+//    m_pbpDvrFile->dwIsLocked = fileattr;
+//    m_pbpDvrFile->dwFileType = filetype;
+
+//    //Search fot file
+//    hFile = NET_DVR_FindFile_V30(currentDevice->getUsrID(), m_pbpDvrFile);
+//    if (hFile < 0)
+//    {
+//        QMessageBox::information(this,tr(" NET_DVR_FindFile_V30 "),
+//            tr("SDK_LASTERROR=%1").arg(NET_DVR_GetLastError()));
+
+
+//        return;
+//    }
+//    else
+//    {
+
+//        NET_DVR_FINDDATA_V30 *fileData = new NET_DVR_FINDDATA_V30;
+//        while (bGetFile)
+//        {
+//            ret = NET_DVR_FindNextFile_V30(hFile, fileData);
+//            switch (ret)
+//            {
+//                case NET_DVR_FILE_SUCCESS:
+//                    qDebug() << "find file" << fileData->sFileName;
+//                    break;
+
+//                case NET_DVR_FILE_NOFIND:
+//                    qDebug() << "no file find";
+//                    NET_DVR_FindClose_V30(hFile);
+//                    bGetFile = FALSE;
+//                    break;
+
+//                case NET_DVR_ISFINDING:
+//                    QMessageBox::information(this,tr(" NET_DVR_FindFile_V30"),
+//                        tr("Is finding now,wait a moment!"));
+
+//                    usleep(200*1000);
+
+//                    break;
+
+//                case NET_DVR_NOMOREFILE:
+//                    qDebug() << "no more file";
+//                    NET_DVR_FindClose_V30(hFile);
+//                    bGetFile = FALSE;
+//                    break;
+
+//                case NET_DVR_FILE_EXCEPTION:
+//                    qDebug() << "File Exception!";
+//                    NET_DVR_FindClose_V30(hFile);
+//                    bGetFile = FALSE;
+//                    break;
+
+//                default:
+//                    qDebug() << "Error occured";
+//                    NET_DVR_FindClose_V30(hFile);
+//                    bGetFile = FALSE;
+//                    break;
+//            }
+//        }
+//        return ;
+//    }
+//}
+
+////test if can do capture(about 300ms, too slow)
+//void TestForm::on_pbCapture_clicked()
+//{
+//    int userID = currentDevice->getUsrID();
+////    ChannelData currentChannel = currentDevice->m_qlistchanneldata.at(0);
+
+////    int channelNum = currentChannel.getChannelNum();
+
+////    NET_DVR_JPEGPARA para;
+////    para.wPicQuality = 0;
+////    para.wPicSize = 5;
+
+////    qDebug() << NET_DVR_CaptureJPEGPicture(userID, channelNum, &para, "./1.jpg");
+
+//    char in[200]="<?xml version=\"1.0\" encoding=\"utf-8\"?> \
+//            <JpegCaptureAbility version=\"2.0\"> \
+//                    <channelNO>1</channelNO>\
+//            </JpegCaptureAbility> ";
+//    char out[2000];
+//    qDebug()<<in;
+//    qDebug() << NET_DVR_GetDeviceAbility(userID,DEVICE_JPEG_CAP_ABILITY,in,200,out,2000);
+//    qDebug()<<out;
+
+//    qDebug() << NET_DVR_GetLastError();
+//}
 
 void TestForm::onTreeClicked(QPoint point)
 {
-    currentTreeItem = (MyTreeItem*)m_treeModel->itemFromIndex(ui->leftTreeView->indexAt(point));
+    m_currentTreeItem = (MyTreeItem*)m_treeModel->itemFromIndex(ui->leftTreeView->indexAt(point));
 
-    if(currentTreeItem == NULL)
+    if(m_currentTreeItem == NULL)
         return;
 
-    int type = currentTreeItem->itemType();
+    int type = m_currentTreeItem->itemType();
 
     switch (type) {
     case ROOT:
@@ -546,14 +542,14 @@ void TestForm::onTreeClicked(QPoint point)
 
 void TestForm::showAddDialog(bool)
 {
-    DeviceDialog *dialog = new DeviceDialog(currentTreeItem->getMapId(), m_deviceList.value(currentTreeItem->getMapId()), ADD, this);
+    DeviceDialog *dialog = new DeviceDialog(NULL, ADD, this);
     connect(dialog, SIGNAL(addDevice(DeviceData*)), this, SLOT(addDevice(DeviceData*)));
     dialog->exec();
 }
 
 void TestForm::showAltDialog(bool)
 {
-    DeviceDialog *dialog = new DeviceDialog(currentTreeItem->getMapId(), m_deviceList.value(currentTreeItem->getMapId()), ALT, this);
+    DeviceDialog *dialog = new DeviceDialog(&m_deviceList[m_currentTreeItem->getMapId()], ALT, this);
     connect(dialog, SIGNAL(altDevice(DeviceData*)), this, SLOT(altDevice(DeviceData*)));
     dialog->exec();
 }
@@ -562,33 +558,29 @@ void TestForm::deleteDevice(bool)
 {
     if(QMessageBox::information(this, "infomation", "confirm to remove?", QMessageBox::Cancel, QMessageBox::Ok) == QMessageBox::Ok)
     {
-        m_deviceList.remove(currentTreeItem->getMapId());
-        m_treeModel->removeRow(currentTreeItem->row(), currentTreeItem->parent()->index());
-        resetDeviceTreeXml(m_deviceList, xmlPath);
+        m_deviceList.remove(m_currentTreeItem->getMapId());
+        m_treeModel->removeRow(m_currentTreeItem->row(), m_currentTreeItem->parent()->index());
+        resetDeviceTreeXml(m_deviceList, XML_PATH);
     }
 }
 
-void TestForm::altDevice(DeviceData *newdd)
+void TestForm::altDevice(DeviceData *ddata)
 {
-    m_deviceList[newdd->getMapId()] = *newdd;
-    DeviceData *ddata = &m_deviceList[newdd->getMapId()];
-
     if(!testLogin(ddata->getMapId()))
         QMessageBox::warning(this, "error", "Login device:"+ddata->getDeviceName()+" failed");
 
-    m_treeModel->removeRows(0, currentTreeItem->rowCount(), currentTreeItem->index());
-    currentTreeItem->setText(ddata->getDeviceName());
+    m_treeModel->removeRows(0, m_currentTreeItem->rowCount(), m_currentTreeItem->index());
+    m_currentTreeItem->setText(ddata->getDeviceName());
 
     QList<ChannelData> &clist = m_deviceList[ddata->getMapId()].getChannelData();
     for(int i = 0; i<clist.size(); i++)
     {
         ChannelData *cdata = &clist[i];
         MyTreeItem *channelItem = new MyTreeItem(cdata->getChannelName(), cdata->getSerial(), CHANNEL, cdata);
-        currentTreeItem->appendRow(channelItem);
+        m_currentTreeItem->appendRow(channelItem);
     }
 
-    resetDeviceTreeXml(m_deviceList, xmlPath);
-    delete newdd;
+    resetDeviceTreeXml(m_deviceList, XML_PATH);
 }
 
 void TestForm::addDevice(DeviceData *newdd)
@@ -611,9 +603,9 @@ void TestForm::addDevice(DeviceData *newdd)
         deviceItem->appendRow(channelItem);
     }
 
-    currentTreeItem->appendRow(deviceItem);
+    m_currentTreeItem->appendRow(deviceItem);
 
-    resetDeviceTreeXml(m_deviceList, xmlPath);
+    resetDeviceTreeXml(m_deviceList, XML_PATH);
     delete newdd;
 }
 
@@ -629,22 +621,18 @@ void TestForm::onTreeDoubleClicked(QModelIndex index)
         }
         else
         {
-            foreach(QString mapId, m_deviceList.keys())
+            DisplayFrame *frame = getFreeFrame();
+            if(frame)
             {
-                DeviceData *ddata = &m_deviceList[mapId];
-
-                QList<ChannelData> &clist = ddata->getChannelData();
-                for(int i = 0; i<clist.size(); i++)
-                {
-                    ChannelData *cdata = &clist[i];
-                    if(cdata->isPlaying == true)
-                    {
-                        stopRealPlay(cdata);
-                    }
-                }
+                frame->setIsPlaying(true);
+                cdata->frame = frame;
+                cdata->isPlaying = true;
+                startRealPlay(cdata);
             }
-
-            startRealPlay(cdata);
+            else
+            {
+                QMessageBox::information(this, "info", "please close one cameral first");
+            }
         }
     }
 }
@@ -676,14 +664,13 @@ void TestForm::startRealPlay(ChannelData *cdata)
     //取流
     int realHandle = NET_DVR_RealPlay_V30(userID, clientinfo, DataCallBack, cdata,0);
 
-    //1111111111111111111
-    cdata->startLS();
-    //1111111111111111111
-
     qDebug("realPlay---Protocal:%d", clientinfo->lLinkMode);
 
     if (realHandle < 0)
     {
+        cdata->frame->setIsPlaying(false);
+        cdata->frame = NULL;
+        cdata->isPlaying = false;
         QMessageBox::information(this, tr("NET_DVR_RealPlay error"), tr("SDK_LASTERROR=%1").arg(NET_DVR_GetLastError()));
     }
     else
@@ -695,6 +682,9 @@ void TestForm::startRealPlay(ChannelData *cdata)
             if (!NET_DVR_GetDVRConfig(userID, NET_DVR_GET_IPPARACFG,0,
                                       &ipcfg, sizeof(NET_DVR_IPPARACFG),&Bytesreturned))
             {
+                cdata->frame->setIsPlaying(false);
+                cdata->frame = NULL;
+                cdata->isPlaying = false;
                 QMessageBox::information(this, tr("NET_DVR_GetDVRConfig"), \
                                          tr("SDK_LAST_ERROR=%1").arg(NET_DVR_GetLastError()));
 
@@ -702,6 +692,9 @@ void TestForm::startRealPlay(ChannelData *cdata)
             }
             if (ipcfg.struIPChanInfo[cdata->getChannelNum()-32-1].byEnable == 0)
             {
+                cdata->frame->setIsPlaying(false);
+                cdata->frame = NULL;
+                cdata->isPlaying = false;
                 QMessageBox::information(this,tr("NET_DVR_RealPlay error"), \
                                          tr("该通道不在线，预览失败"));
 
@@ -710,9 +703,11 @@ void TestForm::startRealPlay(ChannelData *cdata)
         }
 
         cdata->setRealhandle(realHandle);
-        //设置设备是否在预览状态标签值
-        cdata->isPlaying = true;
-        m_filter->setBlackbg(false);
+        cdata->frame->setBlackbg(false);
+        cdata->frame->show();
+        //1111111111111111111
+        cdata->startLS();
+        //1111111111111111111
     }
 }
 
@@ -727,41 +722,61 @@ void TestForm::stopRealPlay(ChannelData *cdata)
 
     cdata->isPlaying = false;
 
-    m_filter->setBlackbg(true);
-    ui->frame_1->update();
+    DisplayFrame *frame = cdata->frame;
+    cdata->frame = NULL;
+
+    if(!frame)
+    {
+        qDebug() << "error pframe NULL";
+        return;
+    }
+
+    frame->setIsPlaying(false);
+    frame->setBlackbg(true);
+    frame->update();
+
+
+    if(!noMoreFramePlay())
+    {
+        frame->hide();
+    }
 }
 
-bool PainterEvent::getBlackbg() const
+DisplayFrame *TestForm::getFreeFrame()
 {
-    return blackbg;
-}
-
-void PainterEvent::setBlackbg(bool value)
-{
-    blackbg = value;
-}
-
-bool PainterEvent::eventFilter(QObject *obj, QEvent *event)
-{
-    if (event->type() == QEvent::Paint) {
-        if( blackbg == false && frameMat.data != NULL)
+    foreach (DisplayFrame* frame, m_displayFrames) {
+        if(!frame->getIsPlaying()&&!frame->isHidden())
         {
-            QFrame *frame = (QFrame*)obj;
-            QPainter painter(frame);
-
-            painter.drawPixmap(0, 0, frame->width(), frame->height(), QPixmap::fromImage(cvMat2Image(frameMat)) );
-        }
-        else
-        {
-            QFrame *frame = (QFrame*)obj;
-            QPainter painter(frame);
-
-            QPixmap bg(frame->width(), frame->height());
-            bg.fill(QColor(0, 0, 0));
-            painter.drawPixmap(0, 0, frame->width(), frame->height(), bg);
+            return frame;
         }
     }
 
-    // standard event processing
-    return QObject::eventFilter(obj, event);
+    foreach (DisplayFrame* frame, m_displayFrames) {
+        if(!frame->getIsPlaying())
+        {
+            return frame;
+        }
+    }
+
+    if(m_displayFrames.size() < MAX_DISPLAY_FRAME)
+    {
+        DisplayFrame *frame = new DisplayFrame(this, m_displayFrames.size());
+        m_displayFrames.append(frame);
+        ui->gridLayout->addWidget(frame);
+        return frame;
+    }
+
+    return NULL;
+}
+
+bool TestForm::noMoreFramePlay()
+{
+    foreach (DisplayFrame *frame, m_displayFrames) {
+        if(frame->getIsPlaying())
+        {
+            return false;
+        }
+    }
+
+    return true;
 }

@@ -118,7 +118,7 @@ public:
 
 
 
-NDArrayConverter::NDArrayConverter() { g_numpyAllocator = new NumpyAllocator;init(); }
+NDArrayConverter::NDArrayConverter() { g_numpyAllocator = new NumpyAllocator();init(); }
 
 void NDArrayConverter::init()
 {

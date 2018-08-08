@@ -8,7 +8,7 @@ class PYLoader
 public:
     PYLoader();
     ~PYLoader();
-    bool initPY();
+    bool initPY(int argc, char *argv[]);
     PyObject* callPyMethod(PyObject* para);
 private:
     PyObject* pModule =  NULL;

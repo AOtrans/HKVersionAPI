@@ -2,42 +2,18 @@
 #define TESTFORM_H
 
 #include <QWidget>
-#include <QFrame>
-#include <QPainter>
 
 #include "structs/commonstructs.h"
 #include "tools/commonfuncs.h"
 #include "tree/mytreeitem.h"
 #include "dialog/devicedialog.h"
+#include "dialog/displayframe.h"
 
+#define XML_PATH "./Settings/devices.xml"
+#define MAX_DISPLAY_FRAME 4
 class DeviceData;
-
-#include <QEvent>
-
-class PainterEvent : public QObject
-{
-    Q_OBJECT
-public:
-    PainterEvent(QObject* parent):QObject(parent){}
-
-    bool changeMat(cv::Mat mat)
-    {
-        frameMat = mat;
-
-        return true;
-    }
-
-    bool getBlackbg() const;
-    void setBlackbg(bool value);
-
-private:
-    cv::Mat frameMat;
-    bool blackbg = true;
-
-protected:
-    bool eventFilter(QObject *obj, QEvent *event);
-};
-
+class DisplayFrame;
+class MyTreeItem;
 
 namespace Ui {
 class TestForm;
@@ -67,14 +43,17 @@ private:
 
     void stopRealPlay(ChannelData *cdata);
 
+    DisplayFrame* getFreeFrame();
+    bool noMoreFramePlay();
+
 private slots:
-    void on_pbRealPaly_clicked();
+//    void on_pbRealPaly_clicked();
 
-    void on_pbPalyBack_clicked();
+//    void on_pbPalyBack_clicked();
 
-    void on_pbCheckPlayBack_clicked();
+//    void on_pbCheckPlayBack_clicked();
 
-    void on_pbCapture_clicked();
+//    void on_pbCapture_clicked();
 
     void onTreeClicked(QPoint point);
 
@@ -95,12 +74,9 @@ private:
 
     QMap<QString, DeviceData> m_deviceList;
     QStandardItemModel *m_treeModel = NULL;
-    MyTreeItem *currentTreeItem = NULL;
+    MyTreeItem *m_currentTreeItem = NULL;
 
-    QString xmlPath = "./Settings/devices.xml";
-
-    DeviceData *currentDevice = NULL;
-    PainterEvent *m_filter = NULL;
+    QList<DisplayFrame*> m_displayFrames;
 };
 
 #endif // TESTFORM_H

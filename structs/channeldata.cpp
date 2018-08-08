@@ -50,6 +50,7 @@ ChannelData::ChannelData(const ChannelData& cdata)
 
     saveDir = cdata.saveDir;
     imageQueue = cdata.imageQueue;
+    frame = cdata.frame;
 
     queueMtx = new QMutex();
 
@@ -397,7 +398,7 @@ int ChannelData::getImageNO()
 void ChannelData::increaseImgNO()
 {
     ++imageNO;
-    qDebug() << "----------------------------------------" << imageNO;
+    //qDebug() << "----------------------------------------" << imageNO;
 }
 
 void ChannelData::resetImgNO()

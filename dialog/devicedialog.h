@@ -3,7 +3,7 @@
 
 #include <QDialog>
 #include <structs/devicedata.h>
-
+class DeviceData;
 enum TYPE{ALT, ADD};
 
 namespace Ui {
@@ -15,7 +15,7 @@ class DeviceDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit DeviceDialog(QString id, DeviceData ddata, TYPE t, QWidget *parent = 0);
+    explicit DeviceDialog(DeviceData *ddata, TYPE t, QWidget *parent = 0);
     ~DeviceDialog();
 
     void initLe();
@@ -30,8 +30,7 @@ signals:
 
 private:
     Ui::DeviceDialog *ui;
-    QString id;
-    DeviceData ddata;
+    DeviceData *ddata;
     TYPE t;
 };
 
