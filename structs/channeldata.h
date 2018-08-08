@@ -17,8 +17,10 @@
 #include <QMutex>
 #include "tools/senderthread.h"
 #include "tools/conversion.h"
+#include "dialog/displayframe.h"
 
 class SenderThread;
+class DisplayFrame;
 
 enum PROTOCOL{ TCP = 0, UDP, MCAST, RTP, RTP_RTSP};
 enum STREAMTYPE{ MAINSTREAM = 0, SUBSTREAM};
@@ -86,6 +88,7 @@ private:
     QString m_serial;
 
     bool isPlaying = false;
+    DisplayFrame* frame = NULL;
     //通道号
     int m_ichannelnum;
     //传输协议，有TCP,UDP，多播，和RTP等

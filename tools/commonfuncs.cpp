@@ -334,8 +334,8 @@ void CALLBACK DecCBFun(int lPort,char * pBuf,int nSize,FRAME_INFO * pFrameInfo, 
     }
     else if(lFrameType ==T_YV12)
     {
-        qDebug("Video nStamp:%d\n",pFrameInfo->nStamp);
-        qDebug("frame size:%d width:%d height:%d", nSize, pFrameInfo->nWidth, pFrameInfo->nHeight);
+//        qDebug("Video nStamp:%d\n",pFrameInfo->nStamp);
+//        qDebug("frame size:%d width:%d height:%d", nSize, pFrameInfo->nWidth, pFrameInfo->nHeight);
 
         int width = pFrameInfo->nWidth;
         int height = pFrameInfo->nHeight;
@@ -647,15 +647,7 @@ bool sdkInit(QWidget* parent)
 
 QImage cvMat2Image(cv::Mat src)
 {
-    cv::Mat temp; // make the same cv::Mat
-    cv::cvtColor(src, temp,CV_BGR2RGB); // cvtColor Makes a copt, that what i need
-    QImage dest((const uchar *) temp.data, temp.cols, temp.rows, temp.step, QImage::Format_RGB888);
-    dest.bits(); // enforce deep copy, see documentation
+    QImage dest((const uchar *) src.data, src.cols, src.rows, src.step, QImage::Format_RGB888);
 
-    return dest;
-}
-
-PyObject *initPYFunc()
-{
-
+    return dest.rgbSwapped();
 }

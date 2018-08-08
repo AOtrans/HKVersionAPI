@@ -23,7 +23,7 @@ void SenderThread::run()
         if(param)
         {
             qDebug() << "--------------------------------------- have 16 images and send" ;
-            qDebug() << py_loader.callPyMethod(param);
+            qDebug() << PyString_AsString(py_loader.callPyMethod(param));
         }
         else
         {

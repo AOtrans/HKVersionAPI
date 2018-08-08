@@ -39,7 +39,8 @@ SOURCES += main.cpp \
     dialog/devicedialog.cpp \
     tools/senderthread.cpp \
     tools/conversion.cpp \
-    tools/pyloader.cpp
+    tools/pyloader.cpp \
+    dialog/displayframe.cpp
 
 HEADERS  += \
     common.h \
@@ -57,14 +58,14 @@ HEADERS  += \
     dialog/devicedialog.h \
     tools/senderthread.h \
     tools/conversion.h \
-    tools/pyloader.h
+    tools/pyloader.h \
+    dialog/displayframe.h
 
 FORMS    += \
     testform.ui \
     dialog/devicedialog.ui
 
 LIBS += -L/home/zg/CH_HCNetSDK_V5.3.5.2_build20171124_Linux64/QtDemo/Linux64/lib -lhcnetsdk -lPlayCtrl -lAudioRender -lSuperRender -lhpr -lHCCore
-LIBS += -lswscale -lswresample -lavformat  -lavcodec -lavutil -lpostproc -lm
 LIBS += -lopencv_core \
 -lopencv_imgproc \
 -lopencv_highgui \
@@ -75,7 +76,6 @@ LIBS += -lopencv_core \
 -lopencv_contrib \
 -lopencv_legacy \
 -lopencv_flann
-
 
 INCLUDEPATH +=  /usr/include/python2.7\
                 /usr/include/x86_64-linux-gnu/python2.7\
