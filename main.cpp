@@ -1,9 +1,8 @@
 #include "testform.h"
 #include <QtGui>
 #include <QApplication>
-#include "tools/pyloader.h"
 TestForm *form;
-PYLoader py_loader;
+
 /*******************************************************************
       Function:   main
    Description:   主函数入口
@@ -18,13 +17,7 @@ int main(int argc, char *argv[])
     qDebug()<<"current applicationDirPath: "<<QCoreApplication::applicationDirPath();
     qDebug()<<"current currentPath: "<<QDir::currentPath();
 
-    if(!py_loader.initPY(argc, argv))
-    {
-        //QMessageBox::warning(this, "error", "load PY func failed");
-        qDebug() << "load PY func failed";
-    }
-
-    TestForm f;
+    TestForm f(argc, argv);
     form = &f;
 
     f.showMaximized();

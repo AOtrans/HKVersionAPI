@@ -7,6 +7,7 @@ PYLoader::PYLoader()
 
 PYLoader::~PYLoader()
 {
+    qDebug() << "destory py";
     if(pClass)
         Py_DECREF(pClass);
     if(pInstance_hi_class)
@@ -78,6 +79,14 @@ PyObject* PYLoader::callPyMethod(PyObject* para)
         //调用hi_class类实例pInstance_hi_class里面的方法
         qDebug() << "call pyfunc";
         PyObject *ret = PyObject_CallMethod(pInstance_hi_class , "predict", "O", para);
+        if(!ret)
+        {
+            qDebug() << "call func failed";
+        }
+        else
+        {
+            qDebug() << "call func successed";
+        }
         return ret;
     }
 }
