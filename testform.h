@@ -14,6 +14,7 @@
 class DeviceData;
 class DisplayFrame;
 class MyTreeItem;
+class ChannelData;
 
 namespace Ui {
 class TestForm;

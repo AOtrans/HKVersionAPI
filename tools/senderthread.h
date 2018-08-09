@@ -3,6 +3,7 @@
 
 #include <QThread>
 #include "structs/channeldata.h"
+#include "tools/commonfuncs.h"
 class ChannelData;
 
 class SenderThread : public QThread

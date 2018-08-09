@@ -10,15 +10,14 @@
 #include <QMessageBox>
 #include<structs/devicedata.h>
 #include<QUuid>
+#include<QJsonDocument>
+#include<QJsonObject>
+#include<QJsonArray>
+#include "structs/commonstructs.h"
 
 #include "opencv/cv.h"
 #include "opencv/highgui.h"
 
-//extern "C"
-//{
-//#include "libavcodec/avcodec.h"
-//#include "libavformat/avformat.h"
-//}
 #include"testform.h"
 class TestForm;
 
@@ -40,4 +39,5 @@ void CALLBACK ExceptionCallBack(DWORD dwType, LONG lUserID, LONG lHandle, void *
 
 bool sdkInit(QWidget *);
 
+QList<BBox> json2obj(QString json);
 #endif // COMMONFUNCS_H

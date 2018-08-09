@@ -651,3 +651,39 @@ QImage cvMat2Image(cv::Mat src)
 
     return dest.rgbSwapped();
 }
+
+
+QList<BBox> json2obj(QString json)
+{
+    QList<BBox> bboxes;
+    if(json == "")
+        return bboxes;
+
+    QJsonParseError jsonError;
+    QJsonDocument doucment = QJsonDocument::fromJson(json.toLocal8Bit(), &jsonError);  // 转化为 JSON 文档
+    if (!doucment.isNull() && (jsonError.error == QJsonParseError::NoError)) {  // 解析未发生错误
+        QJsonObject object = doucment.object();  // 转化为对象
+        QJsonValue value = object.value("0");  // 获取指定 key 对应的 value
+        QJsonArray array = value.toArray();
+        for(QJsonArray::Iterator it = array.begin(); it != array.end(); ++it)
+        {
+            QJsonArray array = (*it).toArray();
+            BBox bbox;
+
+            bbox.type = array.at(0).toDouble();
+            bbox.y1 = array.at(1).toDouble();
+            bbox.x1 = array.at(2).toDouble();
+
+            bbox.y2 = array.at(3).toDouble();
+            bbox.x2 = array.at(4).toDouble();
+
+            bbox.predict0 = array.at(5).toDouble();
+            bbox.predict1 = array.at(6).toDouble();
+            bbox.predict2 = array.at(7).toDouble();
+
+            bboxes.append(bbox);
+        }
+    }
+
+    return bboxes;
+}

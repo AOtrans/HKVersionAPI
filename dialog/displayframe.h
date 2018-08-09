@@ -6,8 +6,11 @@
 #include <QMutex>
 #include <QLabel>
 #include "tools/commonfuncs.h"
+#include "structs/commonstructs.h"
 
 //class PainterEvent;
+
+enum state{NONE, PHONE, PHOTO};
 
 class DisplayFrame : public QFrame
 {
@@ -31,12 +34,17 @@ public:
 
         return true;
     }
+    QList<BBox> getBboxes() const;
+    void setBboxes(const QList<BBox> &value);
+
 private:
     virtual void paintEvent(QPaintEvent *) override;
-//    PainterEvent *painter;
+    //    PainterEvent *painter;
     bool isPlaying = false;
     int m_id;
 
+
+    QList<BBox> bboxes;
     cv::Mat frameMat;
     bool blackbg = true;
 };
