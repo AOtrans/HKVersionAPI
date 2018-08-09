@@ -361,7 +361,8 @@ PyObject* ChannelData::makeImagePackge()
 
             PyObject *it = cvt.toNDArray(img );
 
-            qDebug() << "insert list"<< PyList_SetItem(tp , i, it);
+            //qDebug() << "insert list"<<
+            PyList_SetItem(tp , i, it);
         }
 
         imageQueue.clear();
@@ -416,4 +417,14 @@ void ChannelData::stopLS()
     st->requestInterruption();
     st->quit();
     st->wait();
+}
+
+DisplayFrame *ChannelData::getFrame() const
+{
+    return frame;
+}
+
+void ChannelData::setFrame(DisplayFrame *value)
+{
+    frame = value;
 }

@@ -39,21 +39,49 @@ int DisplayFrame::getId() const
 
 void DisplayFrame::paintEvent(QPaintEvent *event)
 {
+    QPainter painter(this);
+
     if( blackbg == false && frameMat.data != NULL)
     {
-        QPainter painter(this);
+        for(int i =0 ; i < bboxes.size(); i++)
+        {
+            BBox box = bboxes.at(i);
+
+            switch (box.type) {
+            case NONE:
+                cv::rectangle(frameMat, cv::Rect(box.x1, box.y1, box.x2 - box.x1, box.y2 - box.y1 ), cv::Scalar(0, 255, 0), 4);
+                break;
+            case PHONE:
+                cv::rectangle(frameMat, cv::Rect(box.x1, box.y1, box.x2 - box.x1, box.y2 - box.y1 ), cv::Scalar(0, 0, 255), 4);
+                break;
+            case PHOTO:
+                cv::rectangle(frameMat, cv::Rect(box.x1, box.y1, box.x2 - box.x1, box.y2 - box.y1 ), cv::Scalar(0, 0, 255), 4);
+                break;
+            default:
+                break;
+            }
+        }
+
         painter.drawPixmap(0, 0, this->width(), this->height(), QPixmap::fromImage(cvMat2Image(frameMat)) );
     }
     else
     {
-        QPainter painter(this);
-
         QPixmap bg(this->width(), this->height());
         bg.fill(QColor(0, 0, 0));
         painter.drawPixmap(0, 0, this->width(), this->height(), bg);
     }
 
     QFrame::paintEvent(event);
+}
+
+QList<BBox> DisplayFrame::getBboxes() const
+{
+    return bboxes;
+}
+
+void DisplayFrame::setBboxes(const QList<BBox> &value)
+{
+    bboxes = value;
 }
 
 bool DisplayFrame::getBlackbg() const

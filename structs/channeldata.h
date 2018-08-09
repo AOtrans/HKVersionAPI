@@ -81,6 +81,9 @@ public:
 
     void startLS();
     void stopLS();
+    DisplayFrame *getFrame() const;
+    void setFrame(DisplayFrame *value);
+
 private:
     //通道名称
     QString m_qchannelname;
@@ -89,6 +92,7 @@ private:
 
     bool isPlaying = false;
     DisplayFrame* frame = NULL;
+
     //通道号
     int m_ichannelnum;
     //传输协议，有TCP,UDP，多播，和RTP等

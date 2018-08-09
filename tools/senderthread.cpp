@@ -25,8 +25,11 @@ void SenderThread::run()
             qDebug() << "--------------------------------------- have 16 images and send" ;
             PyObject *ret = py_loader.callPyMethod(param);
 
-            if(ret)
-                qDebug() << PyString_AsString(ret);
+            QString json = QString(PyString_AsString(ret));
+            qDebug() << json;
+            QList<BBox> &&bboxes = json2obj(json);
+            cdata->getFrame()->setBboxes(bboxes);
+
         }
         else
         {
