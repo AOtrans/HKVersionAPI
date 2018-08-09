@@ -6,13 +6,22 @@
 #include <unistd.h>
 #include <QMenu>
 #include <QUuid>
+#include <QProgressBar>
+#include "tools/pyloader.h"
+PYLoader py_loader;
 
-TestForm::TestForm(QWidget *parent) :
+TestForm::TestForm(int argc, char *argv[], QWidget *parent) :
     QWidget(parent),
     ui(new Ui::TestForm)
 {
     ui->setupUi(this);
 
+    QProgressBar bar;
+    bar.setMaximum(100);
+    bar.setMinimum(0);
+    bar.show();
+
+    bar.setValue(25);
     if(sdkInit(this))
     {
         if(!analysis(m_deviceList, XML_PATH))
@@ -22,10 +31,17 @@ TestForm::TestForm(QWidget *parent) :
         initTree();
     }
 
+    bar.setValue(50);
     DisplayFrame *frame = new DisplayFrame(this, 0);
     m_displayFrames.append(frame);
     ui->gridLayout->addWidget(frame);
-
+    bar.setValue(75);
+    if(!py_loader.initPY(argc, argv))
+    {
+        //QMessageBox::warning(this, "error", "load PY func failed");
+        qDebug() << "load PY func failed";
+    }
+    bar.setValue(100);
 }
 
 TestForm::~TestForm()

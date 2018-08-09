@@ -26,7 +26,7 @@ class TestForm : public QWidget
     friend class DeviceDialog;
     friend class MyTreeItem;
 public:
-    explicit TestForm(QWidget *parent = 0);
+    explicit TestForm(int argc, char *argv[], QWidget *parent = 0);
     ~TestForm();
 
     void showVideo(cv::Mat img, ChannelData *cdata);
