@@ -31,12 +31,13 @@ public:
     bool changeMat(cv::Mat mat)
     {
         frameMat = mat;
-
+        emit doUpdate();
         return true;
     }
     QList<BBox> getBboxes() const;
     void setBboxes(const QList<BBox> &value);
-
+signals:
+    void doUpdate();
 private:
     virtual void paintEvent(QPaintEvent *) override;
     //    PainterEvent *painter;

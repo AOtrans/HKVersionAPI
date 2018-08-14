@@ -8,20 +8,40 @@
 #include <QUuid>
 #include <QProgressBar>
 #include "tools/pyloader.h"
-PYLoader py_loader;
+extern PYLoader py_loader;
 
-TestForm::TestForm(int argc, char *argv[], QWidget *parent) :
+TestForm::TestForm(int argc, char *argv[], int w, int h, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::TestForm)
 {
     ui->setupUi(this);
 
     QProgressBar bar;
+    bar.setWindowTitle("Loading...");
+    bar.setWindowFlags(Qt::WindowTitleHint | Qt::CustomizeWindowHint);
     bar.setMaximum(100);
     bar.setMinimum(0);
+    bar.move((w-bar.width()/2)/2, (h-bar.height()/2)/2);
     bar.show();
 
+    bar.setValue(0);
+    qApp->processEvents();
+
     bar.setValue(25);
+    qApp->processEvents();
+
+    if(!py_loader.initPY(argc, argv))
+    {
+        QMessageBox::warning(this, "error", "load PY func failed");
+    }
+
+    DisplayFrame *frame = new DisplayFrame(this, 0);
+    m_displayFrames.append(frame);
+    ui->gridLayout->addWidget(frame);
+
+    bar.setValue(75);
+    qApp->processEvents();
+
     if(sdkInit(this))
     {
         if(!analysis(m_deviceList, XML_PATH))
@@ -31,23 +51,17 @@ TestForm::TestForm(int argc, char *argv[], QWidget *parent) :
         initTree();
     }
 
-    bar.setValue(50);
-    DisplayFrame *frame = new DisplayFrame(this, 0);
-    m_displayFrames.append(frame);
-    ui->gridLayout->addWidget(frame);
-    bar.setValue(75);
-    if(!py_loader.initPY(argc, argv))
-    {
-        //QMessageBox::warning(this, "error", "load PY func failed");
-        qDebug() << "load PY func failed";
-    }
     bar.setValue(100);
+    qApp->processEvents();
 }
 
 TestForm::~TestForm()
 {
-    delete ui;
+    qDebug() << "delete mainform";
 
+    delete ui;
+    if(m_treeModel)
+        delete m_treeModel;
     //NET_DVR_LOGOUT(id);
 
     NET_DVR_Cleanup();
@@ -57,7 +71,7 @@ void TestForm::showVideo(cv::Mat img, ChannelData *cdata)
 {
 //    cv::resize(img, img, cv::Size(cdata->frame->width(), cdata->frame->height()));
     cdata->frame->changeMat(img);
-    cdata->frame->update();
+    //cdata->frame->update();
 //    cdata->frame->getPainter()->changeMat(img);
 //    cdata->frame->repaint();
 }
@@ -99,7 +113,7 @@ void TestForm::initTree()
 
     ui->leftTreeView->setContextMenuPolicy(Qt::CustomContextMenu);
     ui->leftTreeView->expandAll();
-    connect(ui->leftTreeView, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(onTreeClicked(QPoint)));
+    connect(ui->leftTreeView, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(onTreeRightClicked(QPoint)));
     connect(ui->leftTreeView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(onTreeDoubleClicked(QModelIndex)));
 }
 
@@ -108,13 +122,13 @@ void TestForm::showRootMenu(QPoint &point)
     QPoint showP = this->mapToGlobal(point);
     showP.setY(showP.y() + 30);
 
-    QMenu *menu = new QMenu(this);
-    QAction *acAdd = new QAction("add Device", menu);
+    QMenu menu;
+    QAction *acAdd = new QAction("add Device", &menu);
 
     connect(acAdd, SIGNAL(triggered(bool)), this, SLOT(showAddDialog(bool)));
 
-    menu->addAction(acAdd);
-    menu->exec(showP);
+    menu.addAction(acAdd);
+    menu.exec(showP);
 }
 
 void TestForm::showDeviceMenu(QPoint &point)
@@ -122,16 +136,16 @@ void TestForm::showDeviceMenu(QPoint &point)
     QPoint showP = this->mapToGlobal(point);
     showP.setY(showP.y() + 30);
 
-    QMenu *menu = new QMenu(this);
-    QAction *acDelete = new QAction("delete Device", menu);
+    QMenu menu;
+    QAction *acDelete = new QAction("delete Device", &menu);
     connect(acDelete, SIGNAL(triggered(bool)), this, SLOT(deleteDevice(bool)));
 
-    QAction *acAlt = new QAction("alt Device", menu);
+    QAction *acAlt = new QAction("alt Device", &menu);
     connect(acAlt, SIGNAL(triggered(bool)), this, SLOT(showAltDialog(bool)));
 
-    menu->addAction(acAlt);
-    menu->addAction(acDelete);
-    menu->exec(showP);
+    menu.addAction(acAlt);
+    menu.addAction(acDelete);
+    menu.exec(showP);
 }
 
 bool TestForm::testLogin(QString mapId)
@@ -531,7 +545,7 @@ void TestForm::loginAllDevice()
 //    qDebug() << NET_DVR_GetLastError();
 //}
 
-void TestForm::onTreeClicked(QPoint point)
+void TestForm::onTreeRightClicked(QPoint point)
 {
     m_currentTreeItem = (MyTreeItem*)m_treeModel->itemFromIndex(ui->leftTreeView->indexAt(point));
 
