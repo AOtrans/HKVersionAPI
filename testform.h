@@ -1,6 +1,5 @@
 #ifndef TESTFORM_H
 #define TESTFORM_H
-
 #include <QWidget>
 
 #include "structs/commonstructs.h"
@@ -8,6 +7,7 @@
 #include "tree/mytreeitem.h"
 #include "dialog/devicedialog.h"
 #include "dialog/displayframe.h"
+#include "tools/pyloader.h"
 
 #define XML_PATH "./Settings/devices.xml"
 #define MAX_DISPLAY_FRAME 4
@@ -27,7 +27,7 @@ class TestForm : public QWidget
     friend class DeviceDialog;
     friend class MyTreeItem;
 public:
-    explicit TestForm(int argc, char *argv[], QWidget *parent = 0);
+    explicit TestForm(int argc, char *argv[], int w, int h, QWidget *parent = 0);
     ~TestForm();
 
     void showVideo(cv::Mat img, ChannelData *cdata);
@@ -56,7 +56,7 @@ private slots:
 
 //    void on_pbCapture_clicked();
 
-    void onTreeClicked(QPoint point);
+    void onTreeRightClicked(QPoint point);
 
     void showAddDialog(bool);
 

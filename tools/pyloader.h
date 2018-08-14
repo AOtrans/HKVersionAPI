@@ -2,6 +2,7 @@
 #define PYLOADER_H
 #include<Python.h>
 #include<QDebug>
+#include<tools/conversion.h>
 
 class PYLoader
 {

@@ -1,13 +1,10 @@
 # include "conversion.h"
+#include<QThread>
+#include<QDebug>
 /*
  * The following conversion functions are taken/adapted from OpenCV's cv2.cpp file
  * inside modules/python/src2 folder.
  */
-
-static void init()
-{
-    import_array();
-}
 
 static int failmsg(const char *fmt, ...)
 {
@@ -22,44 +19,9 @@ static int failmsg(const char *fmt, ...)
     return 0;
 }
 
-class PyAllowThreads
-{
-public:
-    PyAllowThreads() : _state(PyEval_SaveThread()) {}
-    ~PyAllowThreads()
-    {
-        PyEval_RestoreThread(_state);
-    }
-private:
-    PyThreadState* _state;
-};
-
-class PyEnsureGIL
-{
-public:
-    PyEnsureGIL() : _state(PyGILState_Ensure()) {}
-    ~PyEnsureGIL()
-    {
-        PyGILState_Release(_state);
-    }
-private:
-    PyGILState_STATE _state;
-};
 
 using namespace cv;
 
-static PyObject* failmsgp(const char *fmt, ...)
-{
-  char str[1000];
-
-  va_list ap;
-  va_start(ap, fmt);
-  vsnprintf(str, sizeof(str), fmt, ap);
-  va_end(ap);
-
-  PyErr_SetString(PyExc_TypeError, str);
-  return 0;
-}
 
 class NumpyAllocator : public MatAllocator
 {
@@ -69,9 +31,10 @@ public:
 
     void allocate(int dims, const int* sizes, int type, int*& refcount,
                   uchar*& datastart, uchar*& data, size_t* step)
-    {
-        //PyEnsureGIL gil;
-
+   {
+#ifdef THREAD_ABLE
+        PyEnsureGIL gil;
+#endif
         int depth = CV_MAT_DEPTH(type);
         int cn = CV_MAT_CN(type);
         const int f = (int)(sizeof(size_t)/8);
@@ -107,7 +70,9 @@ public:
 
     void deallocate(int* refcount, uchar*, uchar*)
     {
+#ifdef THREAD_ABLE
         PyEnsureGIL gil;
+#endif
         if( !refcount )
             return;
         PyObject* o = pyObjectFromRefcount(refcount);
@@ -116,14 +81,14 @@ public:
     }
 };
 
+NumpyAllocator g_numpyAllocator ;
 
-
-NDArrayConverter::NDArrayConverter() { g_numpyAllocator = new NumpyAllocator();init(); }
-
-void NDArrayConverter::init()
+static void init()
 {
     import_array();
 }
+
+NDArrayConverter::NDArrayConverter() { init();}
 
 cv::Mat NDArrayConverter::toMat(const PyObject *o)
 {
@@ -132,7 +97,7 @@ cv::Mat NDArrayConverter::toMat(const PyObject *o)
     if(!o || o == Py_None)
     {
         if( !m.data )
-            m.allocator = g_numpyAllocator;
+            m.allocator = &g_numpyAllocator;
     }
 
     if( !PyArray_Check(o) )
@@ -203,12 +168,12 @@ cv::Mat NDArrayConverter::toMat(const PyObject *o)
         m.addref(); // protect the original numpy array from deallocation
                     // (since Mat destructor will decrement the reference counter)
     };
-    m.allocator = g_numpyAllocator;
+    m.allocator = &g_numpyAllocator;
 
     if( transposed )
     {
         Mat tmp;
-        tmp.allocator = g_numpyAllocator;
+        tmp.allocator = &g_numpyAllocator;
         transpose(m, tmp);
         m = tmp;
     }
@@ -220,9 +185,9 @@ PyObject* NDArrayConverter::toNDArray(const cv::Mat& m)
     if( !m.data )
         Py_RETURN_NONE;
     Mat temp, *p = (Mat*)&m;
-    if(!p->refcount || p->allocator != g_numpyAllocator)
+    if(!p->refcount || p->allocator != &g_numpyAllocator)
     {
-        temp.allocator = g_numpyAllocator;
+        temp.allocator = &g_numpyAllocator;
         m.copyTo(temp);
         p = &temp;
     }

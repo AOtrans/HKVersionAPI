@@ -78,6 +78,7 @@ ChannelData::~ChannelData()
         delete st;
         st = NULL;
     }
+
 }
 
 /************************************************************************
@@ -348,33 +349,22 @@ PyObject* ChannelData::makeImagePackge()
 {
     queueMtx->lock();
 
-    if(imageQueue.size() == MAX_QUEUE)
+    PyObject* tp = PyList_New(MAX_QUEUE);
+    NDArrayConverter cvt;
+    for(int i = 0;i < MAX_QUEUE; i++)
     {
-        NDArrayConverter cvt;
-        PyObject* tp = PyList_New(MAX_QUEUE);
+        cv::Mat src = imageQueue.at(i);
+        //cv::Mat img(src.rows, src.cols, src.type());
+        //cv::cvtColor(src, img, CV_BGR2RGB);
+        PyObject *it = cvt.toNDArray(src);
 
-        for(int i = 0;i < MAX_QUEUE; i++)
-        {
-            cv::Mat src = imageQueue.at(i);
-            cv::Mat img(src.rows, src.cols, src.type());
-            cv::cvtColor(src, img, CV_BGR2RGB);
-
-            PyObject *it = cvt.toNDArray(img );
-
-            //qDebug() << "insert list"<<
-            PyList_SetItem(tp , i, it);
-        }
-
-        imageQueue.clear();
-        queueMtx->unlock();
-        return tp;
+        PyList_SetItem(tp , i, it);
     }
-    else
-    {
 
-        queueMtx->unlock();
-        return NULL;
-    }
+    imageQueue.clear();
+    queueMtx->unlock();
+    return tp;
+
 }
 
 void ChannelData::appendImage(cv::Mat image)
@@ -427,4 +417,9 @@ DisplayFrame *ChannelData::getFrame() const
 void ChannelData::setFrame(DisplayFrame *value)
 {
     frame = value;
+}
+
+bool ChannelData::checkQueueMax()
+{
+    return imageQueue.size() == MAX_QUEUE;
 }

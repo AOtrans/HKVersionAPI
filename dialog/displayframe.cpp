@@ -8,11 +8,13 @@ DisplayFrame::DisplayFrame(QWidget *parent, int id):
     //painter = new PainterEvent(this);
     //this->installEventFilter(painter);
     this->m_id = id;
+
+    connect(this, SIGNAL(doUpdate()), this, SLOT(update()));
 }
 
 DisplayFrame::~DisplayFrame()
 {
-//    qDebug() << "kill Frame";
+    qDebug() << "kill Frame";
 //    if(painter)
 //        delete painter;
 }

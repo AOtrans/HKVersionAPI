@@ -1,5 +1,7 @@
 #include "pyloader.h"
 #include <QDebug>
+#include <QThread>
+
 PYLoader::PYLoader()
 {
 
@@ -7,6 +9,7 @@ PYLoader::PYLoader()
 
 PYLoader::~PYLoader()
 {
+    PyGILState_Ensure();
     qDebug() << "destory py";
     if(pClass)
         Py_DECREF(pClass);
@@ -17,6 +20,7 @@ PYLoader::~PYLoader()
     if(pDict)
         Py_DECREF(pDict);
 
+
     Py_Finalize(); // 与初始化对应
 }
 
@@ -25,6 +29,18 @@ bool PYLoader::initPY(int argc, char *argv[])
     Py_Initialize(); // 初始化，这是必须的，用来初始化python所需的环境
     if (!Py_IsInitialized())
         return false;
+
+#ifdef THREAD_ABLE
+    PyEval_InitThreads();
+    int nInit = PyEval_ThreadsInitialized();
+
+    if(!nInit)
+    {
+        PyErr_Print();
+        return false;
+    }
+#endif
+
     // 导入模块
     PySys_SetArgv(argc, argv);
     PyRun_SimpleString("import sys");
@@ -32,29 +48,34 @@ bool PYLoader::initPY(int argc, char *argv[])
     PyRun_SimpleString("sys.path.append('/home/zg/yaochang')");
 
     PyRun_SimpleString("os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'");
+
+
     pModule = PyImport_ImportModule("Photo_Dectect");
 
-    //pModule = PyImport_ImportModule("myclass");
     if (!pModule) {
         qDebug("Cant open python file!\n");
+        PyErr_Print();
         return false;
     }
     // 模块的字典列表
     pDict = PyModule_GetDict(pModule);
     if (!pDict) {
         qDebug("Cant find dictionary.\n");
+        PyErr_Print();
         return false;
     }
 
     pClass = PyDict_GetItemString(pDict, "Photo_Dectect");
     if (!pClass) {
         qDebug("Cant find class Photo_Dectect.\n");
+        PyErr_Print();
         return false;
     }
     //构造hi_class的实例
     pInstance_hi_class = PyInstance_New(pClass , NULL, NULL);
     if (!pInstance_hi_class) {
         qDebug("Cant create instance.\n");
+        PyErr_Print();
         return false;
     }
 
@@ -67,21 +88,30 @@ bool PYLoader::initPY(int argc, char *argv[])
 //        return -1;
 //    }
 
+#ifdef THREAD_ABLE
+    //release thread
+    PyEval_ReleaseThread(PyThreadState_Get());
+#endif
+
+    qDebug() << "py init done";
     return true;
 }
 
 PyObject* PYLoader::callPyMethod(PyObject* para)
 {
     if(pInstance_hi_class == NULL)
+    {
         return NULL;
+    }
     else
     {
         //调用hi_class类实例pInstance_hi_class里面的方法
-        qDebug() << "call pyfunc";
+        qDebug() << "call pyfunc" << "currentThread:" << QThread::currentThread();
         PyObject *ret = PyObject_CallMethod(pInstance_hi_class , "predict", "O", para);
         if(!ret)
         {
             qDebug() << "call func failed";
+            PyErr_Print();
         }
         else
         {

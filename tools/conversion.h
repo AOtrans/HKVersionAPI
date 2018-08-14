@@ -7,30 +7,21 @@
 #include <opencv2/core/core.hpp>
 #include "numpy/ndarrayobject.h"
 
-#define NUMPY_IMPORT_ARRAY_RETVAL
+class PyEnsureGIL
+{
+public:
+    PyEnsureGIL()
+    {
+        _state = PyGILState_Ensure();
+    }
+    ~PyEnsureGIL()
+    {
+        PyGILState_Release(_state);
+    }
+private:
+    PyGILState_STATE _state;
+};
 
-
-static PyObject* opencv_error = 0;
-
-static int failmsg(const char *fmt, ...);
-
-class PyAllowThreads;
-
-class PyEnsureGIL;
-
-#define ERRWRAP2(expr) \
-try \
-{ \
-    PyAllowThreads allowThreads; \
-    expr; \
-} \
-catch (const cv::Exception &e) \
-{ \
-    PyErr_SetString(opencv_error, e.what()); \
-    return 0; \
-}
-
-static PyObject* failmsgp(const char *fmt, ...);
 
 static size_t REFCOUNT_OFFSET = (size_t)&(((PyObject*)0)->ob_refcnt) +
     (0x12345678 != *(const size_t*)"\x78\x56\x34\x12\0\0\0\0\0")*sizeof(int);
@@ -48,18 +39,13 @@ static inline int* refcountFromPyObject(const PyObject* obj)
 
 class NumpyAllocator;
 
-enum { ARG_NONE = 0, ARG_MAT = 1, ARG_SCALAR = 2 };
 
 class NDArrayConverter
 {
-private:
-    void init();
 public:
     NDArrayConverter();
     cv::Mat toMat(const PyObject* o);
     PyObject* toNDArray(const cv::Mat& mat);
-private:
-    NumpyAllocator *g_numpyAllocator;
 };
 
 # endif

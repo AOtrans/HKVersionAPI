@@ -2,7 +2,6 @@
 #include "pyloader.h"
 #include <QDebug>
 extern PYLoader py_loader;
-
 SenderThread::SenderThread(ChannelData *cdata)
 {
     this->cdata = cdata;
@@ -19,16 +18,24 @@ void SenderThread::run()
 {
     while(!isInterruptionRequested())
     {
-        PyObject *param = cdata->makeImagePackge();
-        if(param)
+        if(cdata->checkQueueMax())
         {
+#ifdef THREAD_ABLE
+            PyEnsureGIL gil;
+#endif
+            qDebug() << "currentThread:" << QThread::currentThread();
+            qDebug() << "---------------------------------------maxQueue begin making packge";
+            PyObject *param = cdata->makeImagePackge();
             qDebug() << "--------------------------------------- have 16 images and send" ;
             PyObject *ret = py_loader.callPyMethod(param);
 
-            QString json = QString(PyString_AsString(ret));
-            qDebug() << json;
-            QList<BBox> &&bboxes = json2obj(json);
-            cdata->getFrame()->setBboxes(bboxes);
+            if(ret)
+            {
+                QString json = QString(PyString_AsString(ret));
+                qDebug() << json;
+                QList<BBox> &&bboxes = json2obj(json);
+                cdata->getFrame()->setBboxes(bboxes);
+            }
 
         }
         else

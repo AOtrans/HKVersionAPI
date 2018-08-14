@@ -84,6 +84,8 @@ public:
     DisplayFrame *getFrame() const;
     void setFrame(DisplayFrame *value);
 
+    bool checkQueueMax();
+
 private:
     //通道名称
     QString m_qchannelname;

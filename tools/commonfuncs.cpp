@@ -624,7 +624,7 @@ bool sdkInit(QWidget* parent)
 
     NET_DVR_SetLogPrint(true);
 
-    NET_DVR_SetConnectTime(10000, 1);
+    NET_DVR_SetConnectTime(3000, 1);
     //注册接收异常、重连等消息的窗口句柄或回调函数。
     NET_DVR_SetExceptionCallBack_V30(0, NULL, ExceptionCallBack, parent);
 
@@ -648,6 +648,7 @@ bool sdkInit(QWidget* parent)
 QImage cvMat2Image(cv::Mat src)
 {
     QImage dest((const uchar *) src.data, src.cols, src.rows, src.step, QImage::Format_RGB888);
+    dest.bits();
 
     return dest.rgbSwapped();
 }
@@ -656,7 +657,7 @@ QImage cvMat2Image(cv::Mat src)
 QList<BBox> json2obj(QString json)
 {
     QList<BBox> bboxes;
-    if(json == "")
+    if(json == "\"\"")
         return bboxes;
 
     QJsonParseError jsonError;
