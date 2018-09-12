@@ -8,6 +8,11 @@
 #include <QUuid>
 #include <QProgressBar>
 #include "tools/pyloader.h"
+#include "dialog/gifdialog.h"
+#include <QDir>
+#include <QFileInfo>
+#include <QFileInfoList>
+#include <QDate>
 extern PYLoader py_loader;
 
 TestForm::TestForm(int argc, char *argv[], int w, int h, QWidget *parent) :
@@ -15,6 +20,8 @@ TestForm::TestForm(int argc, char *argv[], int w, int h, QWidget *parent) :
     ui(new Ui::TestForm)
 {
     ui->setupUi(this);
+
+    initSth();
 
     QProgressBar bar;
     bar.setWindowTitle("Loading...");
@@ -24,17 +31,19 @@ TestForm::TestForm(int argc, char *argv[], int w, int h, QWidget *parent) :
     bar.move((w-bar.width()/2)/2, (h-bar.height()/2)/2);
     bar.show();
 
-    bar.setValue(0);
+    bar.setValue(1);
     qApp->processEvents();
 
     bar.setValue(25);
     qApp->processEvents();
 
+    //initialize python env
     if(!py_loader.initPY(argc, argv))
     {
         QMessageBox::warning(this, "error", "load PY func failed");
     }
 
+    //create a defalut frame to show on main widget
     DisplayFrame *frame = new DisplayFrame(this, 0);
     m_displayFrames.append(frame);
     ui->gridLayout->addWidget(frame);
@@ -42,14 +51,19 @@ TestForm::TestForm(int argc, char *argv[], int w, int h, QWidget *parent) :
     bar.setValue(75);
     qApp->processEvents();
 
+    //initialize HK SDK
     if(sdkInit(this))
     {
+        //reload settings from xml file
         if(!analysis(m_deviceList, XML_PATH))
             qDebug() << "analysis failed";
 
-        loginAllDevice();
-        initTree();
+        //try to login all devices
+        loginAllDevices();
+        initLeftTree();
+        initRightTree();
     }
+
 
     bar.setValue(100);
     qApp->processEvents();
@@ -60,13 +74,12 @@ TestForm::~TestForm()
     qDebug() << "delete mainform";
 
     delete ui;
-    if(m_treeModel)
-        delete m_treeModel;
-    //NET_DVR_LOGOUT(id);
 
+    logoutAllDevices();
     NET_DVR_Cleanup();
 }
 
+//display singal image
 void TestForm::showVideo(cv::Mat img, ChannelData *cdata)
 {
 //    cv::resize(img, img, cv::Size(cdata->frame->width(), cdata->frame->height()));
@@ -76,45 +89,128 @@ void TestForm::showVideo(cv::Mat img, ChannelData *cdata)
 //    cdata->frame->repaint();
 }
 
-void TestForm::initTree()
+void TestForm::initLeftTree()
 {
-    if(m_treeModel == NULL)
-        m_treeModel = new QStandardItemModel(this);
+    if(m_leftTreeModel == NULL)
+        m_leftTreeModel = new QStandardItemModel(this);
 
-    MyTreeItem *rootItem = new MyTreeItem("Devices", "", ROOT, NULL);
+    MyLeftTreeItem *rootItem = new MyLeftTreeItem("Devices", "", lROOT, NULL);
 
 
     foreach(QString mapId, m_deviceList.keys())
     {
+        //binging the target device data and key inside the map
         DeviceData *ddata = &m_deviceList[mapId];
-        MyTreeItem *deviceItem = new MyTreeItem(ddata->getDeviceName(), ddata->getMapId(), DEVICE, ddata);
+        MyLeftTreeItem *deviceItem = new MyLeftTreeItem(ddata->getDeviceName(), ddata->getMapId(), lDEVICE, ddata);
 
         QList<ChannelData> &clist = ddata->getChannelData();
         for(int i = 0; i<clist.size(); i++)
         {
+            //binging target cdata inside the channel list, set Item mapid = ""
             ChannelData *cdata = &clist[i];
-            MyTreeItem *channelItem = new MyTreeItem(cdata->getChannelName(), "", CHANNEL, cdata);
+            MyLeftTreeItem *channelItem = new MyLeftTreeItem(cdata->getChannelName(), "", lCHANNEL, cdata);
             deviceItem->appendRow(channelItem);
         }
 
         rootItem->appendRow(deviceItem);
     }
 
-    m_treeModel->appendRow(rootItem);
-    m_treeModel->setHeaderData(0, Qt::Horizontal, "DevicesTree");
+    m_leftTreeModel->appendRow(rootItem);
+    m_leftTreeModel->setHeaderData(0, Qt::Horizontal, "DevicesTree");
 
     QHeaderView *view = new QHeaderView(Qt::Horizontal, this);
     view->setSectionResizeMode(QHeaderView::Stretch);
 
     ui->leftTreeView->setHeader(view);
 
-    ui->leftTreeView->setModel(m_treeModel);
+    ui->leftTreeView->setModel(m_leftTreeModel);
 
-
+    //enable right clicked signal
     ui->leftTreeView->setContextMenuPolicy(Qt::CustomContextMenu);
     ui->leftTreeView->expandAll();
-    connect(ui->leftTreeView, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(onTreeRightClicked(QPoint)));
-    connect(ui->leftTreeView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(onTreeDoubleClicked(QModelIndex)));
+
+    //connect clicked signals and slots
+    connect(ui->leftTreeView, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(onLeftTreeRightClicked(QPoint)));
+    connect(ui->leftTreeView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(onLeftTreeDoubleClicked(QModelIndex)));
+}
+
+void TestForm::initRightTree()
+{
+    if(m_rightTreeModel_1 == NULL)
+        m_rightTreeModel_1 = new QStandardItemModel(this);
+    if(m_rightTreeModel_2 == NULL)
+        m_rightTreeModel_2 = new QStandardItemModel(this);
+
+    MyRightTreeItem *rootItem_1 = new MyRightTreeItem("History List", rROOT, NULL);
+    MyRightTreeItem *rootItem_2 = new MyRightTreeItem("Today List", rROOT, NULL);
+
+    QDir root_dir(PATH_PREFIX);
+    foreach (QFileInfo dateInfo, root_dir.entryInfoList(QStringList(), QDir::Dirs | QDir::NoDotAndDotDot)){
+        MyRightTreeItem *dateItem = new MyRightTreeItem(dateInfo.fileName(), rDATE, NULL);
+
+        if(QDate::currentDate().toString("yyyy-MM-dd") == dateInfo.fileName())
+        {
+            rootItem_2->appendRow(dateItem);
+        }
+        else
+        {
+            rootItem_1->appendRow(dateItem);
+        }
+
+        QDir date_dir(dateInfo.filePath());
+        foreach (QFileInfo deviceInfo, date_dir.entryInfoList(QStringList(), QDir::Dirs | QDir::NoDotAndDotDot)){
+            MyRightTreeItem *deviceItem = new MyRightTreeItem(m_nameMap[deviceInfo.fileName()], rDEVICE);
+
+            QDir device_dir(deviceInfo.filePath());
+            foreach (QFileInfo channelInfo, device_dir.entryInfoList(QStringList(), QDir::Dirs | QDir::NoDotAndDotDot)){
+                MyRightTreeItem *channelItem = new MyRightTreeItem(channelInfo.fileName(), rCHANNEL);
+
+                QDir channel_dir(channelInfo.filePath());
+                QStringList filter;
+                filter << "*.gif";
+                foreach (QFileInfo gifInfo, channel_dir.entryInfoList(filter, QDir::Files)){
+                    QString fileName  = gifInfo.fileName().replace("\.gif", "");
+                    QString label = fileName.split("_").at(0);
+                    QDateTime dt = QDateTime::fromTime_t(fileName.split("_").at(2).toInt());
+
+                    MyRightTreeItem *gifItem = NULL;
+                    if(label == "1")
+                        gifItem = new MyRightTreeItem(dt.toString("hh:mm:ss"), rGIF1, gifInfo.filePath());
+                    else if(label == "2")
+                        gifItem = new MyRightTreeItem(dt.toString("hh:mm:ss"), rGIF2, gifInfo.filePath());
+
+                    if(gifItem != NULL)
+                        channelItem->appendRow(gifItem);
+                }
+
+                deviceItem->appendRow(channelItem);
+            }
+
+            dateItem->appendRow(deviceItem);
+        }
+    }
+
+
+    m_rightTreeModel_1->appendRow(rootItem_1);
+    m_rightTreeModel_2->appendRow(rootItem_2);
+
+    m_rightTreeModel_1->setHeaderData(0, Qt::Horizontal, "History");
+    m_rightTreeModel_2->setHeaderData(0, Qt::Horizontal, "Today");
+
+    ui->rightTreeView_1->setModel(m_rightTreeModel_1);
+    ui->rightTreeView_2->setModel(m_rightTreeModel_2);
+
+    connect(ui->rightTreeView_1, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(onRightTreeDoubleClicked(QModelIndex)));
+    connect(ui->rightTreeView_2, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(onRightTreeDoubleClicked(QModelIndex)));
+}
+
+void TestForm::initSth()
+{
+    QString save_path = QString(PATH_PREFIX) + "/" + QDate::currentDate().toString("yyyy-MM-dd");
+    QDir dir(save_path);
+
+    if(!dir.exists())
+        dir.mkpath(save_path);
 }
 
 void TestForm::showRootMenu(QPoint &point)
@@ -171,6 +267,7 @@ bool TestForm::testLogin(QString mapId)
     {
         QString snum = QString::fromLocal8Bit((char*)device->m_deviceinfo.sSerialNumber);
         qDebug() << "Device Serial:" << snum;
+        //set SerialNum as an unequal dirpath
         device->setSerialNum(snum);
 
 
@@ -187,6 +284,8 @@ bool TestForm::testLogin(QString mapId)
         }
         else
         {
+            m_nameMap.insert(snum, device->getDeviceName());
+
             qDebug() << "get DeviceCFG success, Device Name:" << QString((char*)devicecfg.sDVRName);
             qDebug() << "DeviceTYPE:" << devicecfg.byDVRType
                      << "DiskNum:" << devicecfg.byDiskNum
@@ -200,7 +299,7 @@ bool TestForm::testLogin(QString mapId)
             if (!NET_DVR_GetDVRConfig(device->m_iuserid, NET_DVR_GET_IPPARACFG,0,
                                       &ipcfg, sizeof(NET_DVR_IPPARACFG),&Bytesreturned))
             {
-                //Camera
+                //Camera(has no ip connect)
                 qDebug() << "(this is Cameral)";
                 for (int i=devicecfg.byStartChan;i<=devicecfg.byChanNum ;i++)
                 {
@@ -224,7 +323,7 @@ bool TestForm::testLogin(QString mapId)
                 }
 
             }
-            else //DVR
+            else //DVR(has ip connect)
             {
                 qDebug() << "(this is DVR)";
 
@@ -245,7 +344,7 @@ bool TestForm::testLogin(QString mapId)
                         newChannel->setStreamType(MAINSTREAM);
                         newChannel->setParentDevice(device);
 
-                        //todo添加进设备节点
+                        //添加进设备节点
                         qDebug() << "get Analog cameral:" <<name;
                         device->m_qlistchanneldata.append(*newChannel);
 
@@ -273,7 +372,7 @@ bool TestForm::testLogin(QString mapId)
                         newChannel->setStreamType(MAINSTREAM);
                         newChannel->setParentDevice(device);
 
-                        //todo添加进设备节点
+                        //添加进设备节点
                         qDebug() << "get IP cameral:" <<name;
                         device->m_qlistchanneldata.append(*newChannel);
 
@@ -291,13 +390,28 @@ bool TestForm::testLogin(QString mapId)
     }
 }
 
-void TestForm::loginAllDevice()
+void TestForm::loginAllDevices()
 {
     foreach(QString mapId, m_deviceList.keys())
     {
         DeviceData &ddata = m_deviceList[mapId];
+
         if(!testLogin(mapId))
             QMessageBox::warning(this, "error", "Login device:"+ddata.getDeviceName()+" failed");
+    }
+}
+
+void TestForm::logoutAllDevices()
+{
+    foreach(QString mapId, m_deviceList.keys())
+    {
+        DeviceData &ddata = m_deviceList[mapId];
+        int uid = ddata.getUsrID();
+        //if has login
+        if(uid >= 0)
+        {
+            NET_DVR_Logout(uid);
+        }
     }
 }
 
@@ -545,9 +659,10 @@ void TestForm::loginAllDevice()
 //    qDebug() << NET_DVR_GetLastError();
 //}
 
-void TestForm::onTreeRightClicked(QPoint point)
+void TestForm::onLeftTreeRightClicked(QPoint point)
 {
-    m_currentTreeItem = (MyTreeItem*)m_treeModel->itemFromIndex(ui->leftTreeView->indexAt(point));
+    //locate current clicked item
+    m_currentTreeItem = (MyLeftTreeItem*)m_leftTreeModel->itemFromIndex(ui->leftTreeView->indexAt(point));
 
     if(m_currentTreeItem == NULL)
         return;
@@ -555,13 +670,13 @@ void TestForm::onTreeRightClicked(QPoint point)
     int type = m_currentTreeItem->itemType();
 
     switch (type) {
-    case ROOT:
+    case lROOT:
         showRootMenu(point);
         break;
-    case DEVICE:
+    case lDEVICE:
         showDeviceMenu(point);
         break;
-    case CHANNEL:
+    case lCHANNEL:
 
         break;
     default:
@@ -589,24 +704,26 @@ void TestForm::deleteDevice(bool)
     if(QMessageBox::information(this, "infomation", "confirm to remove?", QMessageBox::Cancel, QMessageBox::Ok) == QMessageBox::Ok)
     {
         m_deviceList.remove(m_currentTreeItem->getMapId());
-        m_treeModel->removeRow(m_currentTreeItem->row(), m_currentTreeItem->parent()->index());
+        m_leftTreeModel->removeRow(m_currentTreeItem->row(), m_currentTreeItem->parent()->index());
         resetDeviceTreeXml(m_deviceList, XML_PATH);
     }
 }
 
 void TestForm::altDevice(DeviceData *ddata)
 {
+    //check new config
     if(!testLogin(ddata->getMapId()))
         QMessageBox::warning(this, "error", "Login device:"+ddata->getDeviceName()+" failed");
 
-    m_treeModel->removeRows(0, m_currentTreeItem->rowCount(), m_currentTreeItem->index());
+    //remove old channel items and create new channel items
+    m_leftTreeModel->removeRows(0, m_currentTreeItem->rowCount(), m_currentTreeItem->index());
     m_currentTreeItem->setText(ddata->getDeviceName());
 
     QList<ChannelData> &clist = m_deviceList[ddata->getMapId()].getChannelData();
     for(int i = 0; i<clist.size(); i++)
     {
         ChannelData *cdata = &clist[i];
-        MyTreeItem *channelItem = new MyTreeItem(cdata->getChannelName(), cdata->getSerial(), CHANNEL, cdata);
+        MyLeftTreeItem *channelItem = new MyLeftTreeItem(cdata->getChannelName(), "", lCHANNEL, cdata);
         m_currentTreeItem->appendRow(channelItem);
     }
 
@@ -623,13 +740,14 @@ void TestForm::addDevice(DeviceData *newdd)
     if(!testLogin(ddata->getMapId()))
         QMessageBox::warning(this, "error", "Login device:"+ddata->getDeviceName()+" failed");
 
-    MyTreeItem *deviceItem = new MyTreeItem(ddata->getDeviceName(), ddata->getMapId(), DEVICE, ddata);
+    //create device item and channel items
+    MyLeftTreeItem *deviceItem = new MyLeftTreeItem(ddata->getDeviceName(), ddata->getMapId(), lDEVICE, ddata);
 
     QList<ChannelData> &clist = m_deviceList[ddata->getMapId()].getChannelData();
     for(int i = 0; i<clist.size(); i++)
     {
         ChannelData *cdata = &clist[i];
-        MyTreeItem *channelItem = new MyTreeItem(cdata->getChannelName(), cdata->getSerial(), CHANNEL, cdata);
+        MyLeftTreeItem *channelItem = new MyLeftTreeItem(cdata->getChannelName(), "", lCHANNEL, cdata);
         deviceItem->appendRow(channelItem);
     }
 
@@ -639,10 +757,13 @@ void TestForm::addDevice(DeviceData *newdd)
     delete newdd;
 }
 
-void TestForm::onTreeDoubleClicked(QModelIndex index)
+void TestForm::onLeftTreeDoubleClicked(QModelIndex index)
 {
-    MyTreeItem *item = (MyTreeItem*)m_treeModel->itemFromIndex(index);
-    if(item->itemType() == CHANNEL)
+    //locate current clicked item
+    MyLeftTreeItem *item = (MyLeftTreeItem*)m_leftTreeModel->itemFromIndex(index);
+
+    //start realplay or stop realplay
+    if(item->itemType() == lCHANNEL)
     {
         ChannelData *cdata = (ChannelData*)item->getBindData();
         if(cdata->isPlaying == true)
@@ -651,6 +772,7 @@ void TestForm::onTreeDoubleClicked(QModelIndex index)
         }
         else
         {
+            //try to get a free frame to display
             DisplayFrame *frame = getFreeFrame();
             if(frame)
             {
@@ -664,6 +786,19 @@ void TestForm::onTreeDoubleClicked(QModelIndex index)
                 QMessageBox::information(this, "info", "please close one cameral first");
             }
         }
+    }
+}
+
+void TestForm::onRightTreeDoubleClicked(QModelIndex index)
+{
+    QStandardItemModel* model = (QStandardItemModel *)index.model();
+    //locate current clicked item
+    MyRightTreeItem *item = (MyRightTreeItem*)model->itemFromIndex(index);
+
+    if(item->itemType() == rGIF1 || item->itemType() == rGIF2)
+    {
+        GifDialog *d = new GifDialog(item->parent()->parent()->index().data().toString(), item->index().data().toString(), item->bindData(), this);
+        d->show();
     }
 }
 
@@ -743,12 +878,12 @@ void TestForm::startRealPlay(ChannelData *cdata)
 
 void TestForm::stopRealPlay(ChannelData *cdata)
 {
+    cdata->stopLS();
     NET_DVR_StopRealPlay(cdata->getRealhandle());
 
     PlayM4_FreePort(cdata->getDecodePort());
     cdata->setDecodePort(-1);
     cdata->setRealhandle(-1);
-    cdata->stopLS();
 
     cdata->isPlaying = false;
 
@@ -761,10 +896,7 @@ void TestForm::stopRealPlay(ChannelData *cdata)
         return;
     }
 
-    frame->setIsPlaying(false);
-    frame->setBlackbg(true);
-    frame->update();
-
+    frame->reset();
 
     if(!noMoreFramePlay())
     {
@@ -774,6 +906,7 @@ void TestForm::stopRealPlay(ChannelData *cdata)
 
 DisplayFrame *TestForm::getFreeFrame()
 {
+    //try to get a free and not hide frame
     foreach (DisplayFrame* frame, m_displayFrames) {
         if(!frame->getIsPlaying()&&!frame->isHidden())
         {
@@ -781,6 +914,7 @@ DisplayFrame *TestForm::getFreeFrame()
         }
     }
 
+    //try to get a free and hide frame
     foreach (DisplayFrame* frame, m_displayFrames) {
         if(!frame->getIsPlaying())
         {
@@ -788,6 +922,7 @@ DisplayFrame *TestForm::getFreeFrame()
         }
     }
 
+    //try to create a new frame
     if(m_displayFrames.size() < MAX_DISPLAY_FRAME)
     {
         DisplayFrame *frame = new DisplayFrame(this, m_displayFrames.size());
@@ -809,4 +944,32 @@ bool TestForm::noMoreFramePlay()
     }
 
     return true;
+}
+
+void TestForm::on_pbcleft_clicked()
+{
+    if(leftTreeExpand)
+    {
+        ui->leftTreeView->hide();
+        leftTreeExpand = !leftTreeExpand;
+    }
+    else
+    {
+        ui->leftTreeView->show();
+        leftTreeExpand = !leftTreeExpand;
+    }
+}
+
+void TestForm::on_pbcright_clicked()
+{
+    if(rightTreeExpand)
+    {
+        ui->frame->hide();
+        rightTreeExpand = !rightTreeExpand;
+    }
+    else
+    {
+        ui->frame->show();
+        rightTreeExpand = !rightTreeExpand;
+    }
 }

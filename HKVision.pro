@@ -36,12 +36,14 @@ SOURCES += main.cpp \
     structs/channeldata.cpp \
     tools/IniUtil.cpp \
     tools/commonfuncs.cpp \
-    tree/mytreeitem.cpp \
     dialog/devicedialog.cpp \
     tools/senderthread.cpp \
     tools/conversion.cpp \
     tools/pyloader.cpp \
-    dialog/displayframe.cpp
+    dialog/displayframe.cpp \
+    dialog/gifdialog.cpp \
+    tree/mylefttreeitem.cpp \
+    tree/myrighttreeitem.cpp
 
 HEADERS  += \
     common.h \
@@ -55,16 +57,19 @@ HEADERS  += \
     structs/commonstructs.h \
     tools/IniUtil.h \
     tools/commonfuncs.h \
-    tree/mytreeitem.h \
     dialog/devicedialog.h \
     tools/senderthread.h \
     tools/conversion.h \
     tools/pyloader.h \
-    dialog/displayframe.h
+    dialog/displayframe.h \
+    dialog/gifdialog.h \
+    tree/mylefttreeitem.h \
+    tree/myrighttreeitem.h
 
 FORMS    += \
     testform.ui \
-    dialog/devicedialog.ui
+    dialog/devicedialog.ui \
+    dialog/gifdialog.ui
 
 LIBS += -L/home/zg/CH_HCNetSDK_V5.3.5.2_build20171124_Linux64/QtDemo/Linux64/lib -lhcnetsdk -lPlayCtrl -lAudioRender -lSuperRender -lhpr -lHCCore
 LIBS += -lopencv_core \
@@ -85,3 +90,5 @@ INCLUDEPATH +=  /usr/include/python2.7\
 
 LIBS += -L/usr/lib/python2.7/config-x86_64-linux-gnu -L/usr/lib -lpython2.7\
         -lpthread -ldl  -lutil -lm  -Xlinker -export-dynamic -Wl,-O1 -Wl,-Bsymbolic-functions
+
+DISTFILES +=

@@ -34,8 +34,11 @@ public:
         emit doUpdate();
         return true;
     }
+
     QList<BBox> getBboxes() const;
     void setBboxes(const QList<BBox> &value);
+
+    void reset();
 signals:
     void doUpdate();
 private:

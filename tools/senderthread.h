@@ -4,6 +4,7 @@
 #include <QThread>
 #include "structs/channeldata.h"
 #include "tools/commonfuncs.h"
+#include "structs/commonstructs.h"
 class ChannelData;
 
 class SenderThread : public QThread
@@ -13,6 +14,7 @@ public:
     SenderThread(ChannelData *cdata);
     virtual ~SenderThread() override;
     virtual void run() override;
+
 private:
     ChannelData *cdata = NULL;
 };

@@ -10,7 +10,7 @@ public:
     PYLoader();
     ~PYLoader();
     bool initPY(int argc, char *argv[]);
-    PyObject* callPyMethod(PyObject* para);
+    PyObject* callPyMethod(PyObject* para, PyObject* para2);
 private:
     PyObject* pModule =  NULL;
     PyObject* pDict = NULL;

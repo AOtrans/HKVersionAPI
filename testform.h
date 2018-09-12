@@ -4,16 +4,16 @@
 
 #include "structs/commonstructs.h"
 #include "tools/commonfuncs.h"
-#include "tree/mytreeitem.h"
+#include "tree/mylefttreeitem.h"
+#include "tree/myrighttreeitem.h"
 #include "dialog/devicedialog.h"
 #include "dialog/displayframe.h"
 #include "tools/pyloader.h"
+#include "common.h"
 
-#define XML_PATH "./Settings/devices.xml"
-#define MAX_DISPLAY_FRAME 4
 class DeviceData;
 class DisplayFrame;
-class MyTreeItem;
+class MyLeftTreeItem;
 class ChannelData;
 
 namespace Ui {
@@ -25,20 +25,24 @@ class TestForm : public QWidget
     Q_OBJECT
 
     friend class DeviceDialog;
-    friend class MyTreeItem;
+    friend class MyLeftTreeItem;
 public:
     explicit TestForm(int argc, char *argv[], int w, int h, QWidget *parent = 0);
     ~TestForm();
 
     void showVideo(cv::Mat img, ChannelData *cdata);
-    void initTree();
+    void initLeftTree();
+    void initRightTree();
+
+    void initSth();
 private:
     void showRootMenu(QPoint &point);
     void showDeviceMenu(QPoint &point);
 
     bool testLogin(QString deviceid);
 
-    void loginAllDevice();
+    void loginAllDevices();
+    void logoutAllDevices();
 
     void startRealPlay(ChannelData *cdata);
 
@@ -56,7 +60,7 @@ private slots:
 
 //    void on_pbCapture_clicked();
 
-    void onTreeRightClicked(QPoint point);
+    void onLeftTreeRightClicked(QPoint point);
 
     void showAddDialog(bool);
 
@@ -68,14 +72,28 @@ private slots:
 
     void addDevice(DeviceData*);
 
-    void onTreeDoubleClicked(QModelIndex);
+    void onLeftTreeDoubleClicked(QModelIndex);
+
+    void onRightTreeDoubleClicked(QModelIndex);
+
+    void on_pbcleft_clicked();
+
+    void on_pbcright_clicked();
 
 private:
     Ui::TestForm *ui;
 
+    QMap<QString, QString> m_nameMap;
+
     QMap<QString, DeviceData> m_deviceList;
-    QStandardItemModel *m_treeModel = NULL;
-    MyTreeItem *m_currentTreeItem = NULL;
+    QStandardItemModel *m_leftTreeModel = NULL;
+    QStandardItemModel *m_rightTreeModel_1 = NULL;
+    QStandardItemModel *m_rightTreeModel_2 = NULL;
+
+    MyLeftTreeItem *m_currentTreeItem = NULL;
+
+    bool rightTreeExpand = true;
+    bool leftTreeExpand =true;
 
     QList<DisplayFrame*> m_displayFrames;
 };
