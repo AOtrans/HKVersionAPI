@@ -21,7 +21,7 @@
 #include"testform.h"
 class TestForm;
 
-QImage cvMat2Image(cv::Mat);
+QImage cvMat2Image(cv::Mat&);
 QString decrypt(QString encryptStr);
 QString encrypt(QString srcStr);
 bool resetDeviceTreeXml(QMap<QString, DeviceData> &deviceList, QString xmlFilePath);

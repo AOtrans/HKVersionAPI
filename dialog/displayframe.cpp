@@ -64,6 +64,7 @@ void DisplayFrame::paintEvent(QPaintEvent *event)
             }
         }
 
+        cv::cvtColor(frameMat, frameMat, CV_BGR2RGB);
         painter.drawPixmap(0, 0, this->width(), this->height(), QPixmap::fromImage(cvMat2Image(frameMat)) );
     }
     else
@@ -84,6 +85,15 @@ QList<BBox> DisplayFrame::getBboxes() const
 void DisplayFrame::setBboxes(const QList<BBox> &value)
 {
     bboxes = value;
+}
+
+void DisplayFrame::reset()
+{
+    setIsPlaying(false);
+    setBlackbg(true);
+    bboxes.clear();
+    update();
+
 }
 
 bool DisplayFrame::getBlackbg() const

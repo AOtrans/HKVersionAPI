@@ -10,7 +10,6 @@ PYLoader py_loader;
    Description:   主函数入口
      Parameter:   (IN)   int argc
                   (IN)   char *argv[]
-        Return:   0--成功，-1--失败。
 **********************************************************************/
 int main(int argc, char *argv[])
 {

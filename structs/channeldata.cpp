@@ -75,6 +75,7 @@ ChannelData::~ChannelData()
 
     if(st)
     {
+        stopLS();
         delete st;
         st = NULL;
     }
@@ -312,7 +313,7 @@ int ChannelData::getRealhandle()
 
 QString ChannelData::getSaveDir()
 {
-    return "./" + m_serial + "/Channel" + QString::number(m_ichannelnum);
+    return m_serial + "/" + m_qchannelname;
 }
 
 int ChannelData::getDecodePort() const
@@ -354,9 +355,11 @@ PyObject* ChannelData::makeImagePackge()
     for(int i = 0;i < MAX_QUEUE; i++)
     {
         cv::Mat src = imageQueue.at(i);
-        //cv::Mat img(src.rows, src.cols, src.type());
-        //cv::cvtColor(src, img, CV_BGR2RGB);
-        PyObject *it = cvt.toNDArray(src);
+        cv::Mat img(src.rows, src.cols, src.type());
+        //cvt BGR channel to RGB channel
+        cv::cvtColor(src, img, CV_BGR2RGB);
+
+        PyObject *it = cvt.toNDArray(img);
 
         PyList_SetItem(tp , i, it);
     }
@@ -422,4 +425,9 @@ void ChannelData::setFrame(DisplayFrame *value)
 bool ChannelData::checkQueueMax()
 {
     return imageQueue.size() == MAX_QUEUE;
+}
+
+QQueue<cv::Mat> ChannelData::getImageQueue() const
+{
+    return imageQueue;
 }

@@ -86,6 +86,8 @@ public:
 
     bool checkQueueMax();
 
+    QQueue<cv::Mat> getImageQueue() const;
+
 private:
     //通道名称
     QString m_qchannelname;

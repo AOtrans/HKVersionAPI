@@ -13,9 +13,12 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout_2">
+  <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,5">
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,0,5,0,1">
+     <property name="spacing">
+      <number>2</number>
+     </property>
      <item>
       <widget class="QTreeView" name="leftTreeView">
        <property name="styleSheet">
@@ -24,12 +27,79 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="pbcleft">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>100</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>10</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item>
       <layout class="QGridLayout" name="gridLayout"/>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pbcright">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>100</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>10</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="baseSize">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QFrame" name="frame">
+       <property name="frameShape">
+        <enum>QFrame::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <widget class="QTreeView" name="rightTreeView_1"/>
+        </item>
+        <item>
+         <widget class="QTreeView" name="rightTreeView_2"/>
+        </item>
+       </layout>
+      </widget>
      </item>
     </layout>
    </item>
   </layout>
-  <zorder>frame_1</zorder>
  </widget>
  <resources/>
  <connections/>

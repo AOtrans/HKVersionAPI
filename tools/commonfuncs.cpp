@@ -1,12 +1,13 @@
 #include "commonfuncs.h"
 extern TestForm* form;
 
+//todo
 QString decrypt(QString encryptStr)
 {
     QString key = "";
     return encryptStr;
 }
-
+//todo
 QString encrypt(QString srcStr)
 {
     QString key = "";
@@ -74,6 +75,7 @@ bool resetDeviceTreeXml(QMap<QString, DeviceData> &deviceList, QString xmlFilePa
     return true;
 }
 
+//analysis xml file, initialize device list
 bool analysis(QMap<QString, DeviceData> &deviceList, QString xmlFilePath)
 {
     qDebug() << "start analysis:" << xmlFilePath;
@@ -256,6 +258,7 @@ bool analysis(QMap<QString, DeviceData> &deviceList, QString xmlFilePath)
 //    return 0;
 //}
 
+//cvt YUV12 stream data to cv::Mat
 cv::Mat buf2cvMat(uchar* pBuf, int width ,int height)
 {
     cv::Mat mat(height + height/2, width, CV_8UC1, pBuf);
@@ -275,7 +278,7 @@ bool matSave2JPG(cv::Mat &mat, int id, void *dwUser)
     return cv::imwrite(path.toStdString(), mat);
 }
 
-
+//not used
 void showReal(cv::Mat &img, void *dwUser)
 {
     ChannelData* data = (ChannelData*)dwUser;
@@ -344,12 +347,15 @@ void CALLBACK DecCBFun(int lPort,char * pBuf,int nSize,FRAME_INFO * pFrameInfo, 
 
         //qDebug() << matSave2JPG(img, pFrameInfo->dwFrameNum, dwUser);
         ChannelData *cdata = (ChannelData*)dwUser;
+        //frame count +1
         cdata->increaseImgNO();
 
+        //collect one frame every IMAGE_STEP frames
         if(cdata->getImageNO() % IMAGE_STEP == 0)
             cdata->appendImage(img);
 
-        form->showVideo(img, cdata);
+        //display frame
+        form->showVideo(img.clone(), cdata);
 //        showReal(img, dwUser);
 
 //        AVFrame *pict = buf2Frame((uchar*)pBuf, width, height);
@@ -381,7 +387,7 @@ void CALLBACK DecCBFun(int lPort,char * pBuf,int nSize,FRAME_INFO * pFrameInfo, 
 
 void CALLBACK  DataCallBack(LONG lRealHandle,DWORD dwDataType,BYTE *pBuffer,DWORD  dwBufSize, void* dwUser)
 {
-    //where to use the storm data
+    //where to use the stream data
     DWORD dRet = 0;
 
     LONG lPort = ((ChannelData*)dwUser)->getDecodePort();
@@ -397,6 +403,7 @@ void CALLBACK  DataCallBack(LONG lRealHandle,DWORD dwDataType,BYTE *pBuffer,DWOR
 
         if (!PlayM4_GetPort(&lPort))  //获取播放库未使用的通道号
         {
+            qDebug() << "fail to get decode port";
             break;
         }
 
@@ -622,8 +629,10 @@ bool sdkInit(QWidget* parent)
         qDebug() << "-----------------NET_DVR_Init SUCCESS-----------------";
     }
 
+    //print sdk logs
     NET_DVR_SetLogPrint(true);
 
+    //set max timeout
     NET_DVR_SetConnectTime(3000, 1);
     //注册接收异常、重连等消息的窗口句柄或回调函数。
     NET_DVR_SetExceptionCallBack_V30(0, NULL, ExceptionCallBack, parent);
@@ -632,7 +641,7 @@ bool sdkInit(QWidget* parent)
     qDebug()<< "M4PlayVersion:" << PlayM4_GetSdkVersion();
     //注册回调函数，接收设备报警消息等。
     NET_DVR_SetDVRMessageCallBack_V30(MessCallBack_V30,(void*)0);
-    //启动监听，接收设备主动上传的报警等信息    m_glistenheandle用于判断关闭时是否需要关闭listen
+    //启动监听，接收设备主动上传的报警等信息
     int listenhandle = NET_DVR_StartListen_V30(NULL, 7200, MessCallBack_V30, (void*)0 );
     if( listenhandle < 0 )
     {
@@ -645,12 +654,11 @@ bool sdkInit(QWidget* parent)
     //av_register_all();
 }
 
-QImage cvMat2Image(cv::Mat src)
+QImage cvMat2Image(cv::Mat &src)
 {
     QImage dest((const uchar *) src.data, src.cols, src.rows, src.step, QImage::Format_RGB888);
-    dest.bits();
 
-    return dest.rgbSwapped();
+    return dest;
 }
 
 
@@ -671,7 +679,7 @@ QList<BBox> json2obj(QString json)
             QJsonArray array = (*it).toArray();
             BBox bbox;
 
-            bbox.type = array.at(0).toDouble();
+            bbox.type = array.at(0).toInt();
             bbox.y1 = array.at(1).toDouble();
             bbox.x1 = array.at(2).toDouble();
 
