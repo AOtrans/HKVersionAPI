@@ -72,13 +72,17 @@ private slots:
 
     void addDevice(DeviceData*);
 
-    void onLeftTreeDoubleClicked(QModelIndex);
+    void onLeftTreeDoubleClicked(const QModelIndex&);
 
-    void onRightTreeDoubleClicked(QModelIndex);
+    void onRightTreeDoubleClicked(const QModelIndex&);
 
     void on_pbcleft_clicked();
 
     void on_pbcright_clicked();
+
+    void expandTreeClicked(const QModelIndex&);
+
+    void addRow(QStringList);
 
 private:
     Ui::TestForm *ui;

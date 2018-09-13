@@ -36,7 +36,7 @@ public:
     friend class DeviceData;
     friend class TestForm;
 
-    ChannelData();
+    ChannelData(QObject* parent);
     ChannelData(const ChannelData& cdata);
     ~ChannelData();
 
@@ -116,6 +116,8 @@ private:
 
     int imageNO = 0;
     SenderThread* st = NULL;
+
+    QObject *parent;
 
 };
 #endif /* CHANNELDATA_H_ */
