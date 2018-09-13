@@ -11,6 +11,7 @@
 #include "dialog/gifdialog.h"
 #include <QDir>
 #include <QFileInfo>
+#include <QHeaderView>
 #include <QFileInfoList>
 #include <QDate>
 extern PYLoader py_loader;
@@ -132,6 +133,10 @@ void TestForm::initLeftTree()
     //connect clicked signals and slots
     connect(ui->leftTreeView, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(onLeftTreeRightClicked(QPoint)));
     connect(ui->leftTreeView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(onLeftTreeDoubleClicked(QModelIndex)));
+
+    connect(ui->leftTreeView, SIGNAL(expanded(QModelIndex)), this, SLOT(expandTreeClicked(QModelIndex)));
+    connect(ui->leftTreeView, SIGNAL(collapsed(QModelIndex)), this, SLOT(expandTreeClicked(QModelIndex)));
+
 }
 
 void TestForm::initRightTree()
@@ -141,12 +146,12 @@ void TestForm::initRightTree()
     if(m_rightTreeModel_2 == NULL)
         m_rightTreeModel_2 = new QStandardItemModel(this);
 
-    MyRightTreeItem *rootItem_1 = new MyRightTreeItem("History List", rROOT, NULL);
-    MyRightTreeItem *rootItem_2 = new MyRightTreeItem("Today List", rROOT, NULL);
+    MyRightTreeItem *rootItem_1 = new MyRightTreeItem("History List", rROOT);
+    MyRightTreeItem *rootItem_2 = new MyRightTreeItem("Today List", rROOT);
 
     QDir root_dir(PATH_PREFIX);
     foreach (QFileInfo dateInfo, root_dir.entryInfoList(QStringList(), QDir::Dirs | QDir::NoDotAndDotDot)){
-        MyRightTreeItem *dateItem = new MyRightTreeItem(dateInfo.fileName(), rDATE, NULL);
+        MyRightTreeItem *dateItem = new MyRightTreeItem(dateInfo.fileName(), rDATE);
 
         if(QDate::currentDate().toString("yyyy-MM-dd") == dateInfo.fileName())
         {
@@ -159,7 +164,7 @@ void TestForm::initRightTree()
 
         QDir date_dir(dateInfo.filePath());
         foreach (QFileInfo deviceInfo, date_dir.entryInfoList(QStringList(), QDir::Dirs | QDir::NoDotAndDotDot)){
-            MyRightTreeItem *deviceItem = new MyRightTreeItem(m_nameMap[deviceInfo.fileName()], rDEVICE);
+            MyRightTreeItem *deviceItem = new MyRightTreeItem(m_nameMap[deviceInfo.fileName()], rDEVICE, deviceInfo.fileName());
 
             QDir device_dir(deviceInfo.filePath());
             foreach (QFileInfo channelInfo, device_dir.entryInfoList(QStringList(), QDir::Dirs | QDir::NoDotAndDotDot)){
@@ -171,7 +176,7 @@ void TestForm::initRightTree()
                 foreach (QFileInfo gifInfo, channel_dir.entryInfoList(filter, QDir::Files)){
                     QString fileName  = gifInfo.fileName().replace("\.gif", "");
                     QString label = fileName.split("_").at(0);
-                    QDateTime dt = QDateTime::fromTime_t(fileName.split("_").at(2).toInt());
+                    QDateTime dt = QDateTime::fromTime_t(fileName.split("_").at(1).toInt());
 
                     MyRightTreeItem *gifItem = NULL;
                     if(label == "1")
@@ -202,15 +207,24 @@ void TestForm::initRightTree()
 
     connect(ui->rightTreeView_1, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(onRightTreeDoubleClicked(QModelIndex)));
     connect(ui->rightTreeView_2, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(onRightTreeDoubleClicked(QModelIndex)));
+
+    connect(ui->rightTreeView_1, SIGNAL(expanded(QModelIndex)), this, SLOT(expandTreeClicked(QModelIndex)));
+    connect(ui->rightTreeView_2, SIGNAL(expanded(QModelIndex)), this, SLOT(expandTreeClicked(QModelIndex)));
+
+    connect(ui->rightTreeView_1, SIGNAL(collapsed(QModelIndex)), this, SLOT(expandTreeClicked(QModelIndex)));
+    connect(ui->rightTreeView_2, SIGNAL(collapsed(QModelIndex)), this, SLOT(expandTreeClicked(QModelIndex)));
 }
 
 void TestForm::initSth()
 {
-    QString save_path = QString(PATH_PREFIX) + "/" + QDate::currentDate().toString("yyyy-MM-dd");
-    QDir dir(save_path);
+//    QString save_path = QString(PATH_PREFIX) + "/" + QDate::currentDate().toString("yyyy-MM-dd");
+//    QDir dir(save_path);
 
-    if(!dir.exists())
-        dir.mkpath(save_path);
+//    if(!dir.exists())
+//        dir.mkpath(save_path);
+
+    ui->pbcleft->setIcon(QIcon(LEFT_ICON));
+    ui->pbcright->setIcon(QIcon(RIGHT_ICON));
 }
 
 void TestForm::showRootMenu(QPoint &point)
@@ -303,7 +317,7 @@ bool TestForm::testLogin(QString mapId)
                 qDebug() << "(this is Cameral)";
                 for (int i=devicecfg.byStartChan;i<=devicecfg.byChanNum ;i++)
                 {
-                    ChannelData *newChannel = new ChannelData;
+                    ChannelData *newChannel = new ChannelData(this);
                     QString name="Cameral";
                     QString num = QString::number(i, 10) ;
                     name.append(num);
@@ -332,7 +346,7 @@ bool TestForm::testLogin(QString mapId)
                 {
                     if (1== ipcfg.byAnalogChanEnable[i])
                     {
-                        ChannelData *newChannel = new ChannelData;
+                        ChannelData *newChannel = new ChannelData(this);
                         QString name="ANAOGCameral";
                         QString num = QString::number(i+1, 10) ;
                         name.append(num);
@@ -360,7 +374,7 @@ bool TestForm::testLogin(QString mapId)
 
                     if (0 != ipcfg.struIPChanInfo[i].byIPID)
                     {
-                        ChannelData *newChannel = new ChannelData;
+                        ChannelData *newChannel = new ChannelData(this);
                         QString name="IPCameral";
                         QString num = QString::number(ipcfg.struIPChanInfo[i].byIPID, 10) ;
                         name.append(num);
@@ -757,7 +771,7 @@ void TestForm::addDevice(DeviceData *newdd)
     delete newdd;
 }
 
-void TestForm::onLeftTreeDoubleClicked(QModelIndex index)
+void TestForm::onLeftTreeDoubleClicked(const QModelIndex& index)
 {
     //locate current clicked item
     MyLeftTreeItem *item = (MyLeftTreeItem*)m_leftTreeModel->itemFromIndex(index);
@@ -789,7 +803,7 @@ void TestForm::onLeftTreeDoubleClicked(QModelIndex index)
     }
 }
 
-void TestForm::onRightTreeDoubleClicked(QModelIndex index)
+void TestForm::onRightTreeDoubleClicked(const QModelIndex& index)
 {
     QStandardItemModel* model = (QStandardItemModel *)index.model();
     //locate current clicked item
@@ -952,11 +966,15 @@ void TestForm::on_pbcleft_clicked()
     {
         ui->leftTreeView->hide();
         leftTreeExpand = !leftTreeExpand;
+
+        ui->pbcleft->setIcon(QIcon(RIGHT_ICON));
     }
     else
     {
         ui->leftTreeView->show();
         leftTreeExpand = !leftTreeExpand;
+
+        ui->pbcleft->setIcon(QIcon(LEFT_ICON));
     }
 }
 
@@ -966,10 +984,139 @@ void TestForm::on_pbcright_clicked()
     {
         ui->frame->hide();
         rightTreeExpand = !rightTreeExpand;
+
+        ui->pbcright->setIcon(QIcon(LEFT_ICON));
     }
     else
     {
         ui->frame->show();
         rightTreeExpand = !rightTreeExpand;
+
+        ui->pbcright->setIcon(QIcon(RIGHT_ICON));
     }
+}
+
+void TestForm::expandTreeClicked(const QModelIndex &)
+{
+    QTreeView *view = (QTreeView*)sender();
+    view->resizeColumnToContents(0);
+}
+
+void TestForm::addRow(QStringList filePaths)
+{
+    QString date, deviceSerial, channel;
+
+    foreach (QString filePath, filePaths) {
+        QString fileName = filePath.mid(filePath.lastIndexOf("/") + 1).replace("\.gif", "");
+        QString path = filePath.mid(0, filePath.lastIndexOf("/"));
+
+        channel = path.mid(path.lastIndexOf("/") + 1);
+
+        path = path.mid(0, path.lastIndexOf("/"));
+
+        deviceSerial = path.mid(path.lastIndexOf("/") + 1);
+
+        path = path.mid(0, path.lastIndexOf("/"));
+
+        date = path.mid(path.lastIndexOf("/") + 1);
+
+        QStandardItem *dateItem = NULL;
+        if(m_rightTreeModel_2->item(0)->rowCount() == 0 || date != m_rightTreeModel_2->item(0)->child(0)->text())
+        {
+            dateItem = new MyRightTreeItem(date, rDATE);
+            m_rightTreeModel_2->item(0)->appendRow(dateItem);
+        }
+        else
+        {
+            dateItem = m_rightTreeModel_2->item(0)->child(0);
+        }
+
+        bool findDevice = false;
+        for(int i = 0; i < dateItem->rowCount(); i++)
+        {
+            MyRightTreeItem* deviceItem = (MyRightTreeItem*)dateItem->child(i);
+
+            if(deviceItem->bindData() == deviceSerial)
+            {
+                findDevice = true;
+                bool findChannel = false;
+                for(int j = 0; j < deviceItem->rowCount(); j++)
+                {
+                    QStandardItem* channelItem = deviceItem->child(j);
+
+                    if(channelItem->text() == channel)
+                    {
+                        findChannel = true;
+                        QString label = fileName.split("_").at(0);
+                        QDateTime dt = QDateTime::fromTime_t(fileName.split("_").at(1).toInt());
+
+                        MyRightTreeItem *gifItem = NULL;
+                        if(label == "1")
+                            gifItem = new MyRightTreeItem(dt.toString("hh:mm:ss"), rGIF1, filePath);
+                        else if(label == "2")
+                            gifItem = new MyRightTreeItem(dt.toString("hh:mm:ss"), rGIF2, filePath);
+
+                        if(gifItem != NULL)
+                            channelItem->appendRow(gifItem);
+
+                        break;
+                    }
+                }
+
+                if(!findChannel)
+                {
+                    MyRightTreeItem *channelItem = new MyRightTreeItem(channel, rCHANNEL);
+
+                    QString label = fileName.split("_").at(0);
+                    QDateTime dt = QDateTime::fromTime_t(fileName.split("_").at(1).toInt());
+
+                    MyRightTreeItem *gifItem = NULL;
+                    if(label == "1")
+                        gifItem = new MyRightTreeItem(dt.toString("hh:mm:ss"), rGIF1, filePath);
+                    else if(label == "2")
+                        gifItem = new MyRightTreeItem(dt.toString("hh:mm:ss"), rGIF2, filePath);
+
+                    if(gifItem != NULL)
+                        channelItem->appendRow(gifItem);
+
+                    deviceItem->appendRow(channelItem);
+                }
+
+                break;
+            }
+        }
+
+        if(!findDevice)
+        {
+            MyRightTreeItem *deviceItem = new MyRightTreeItem(m_nameMap[deviceSerial], rDEVICE, deviceSerial);
+            MyRightTreeItem *channelItem = new MyRightTreeItem(channel, rCHANNEL);
+
+            QString label = fileName.split("_").at(0);
+            QDateTime dt = QDateTime::fromTime_t(fileName.split("_").at(1).toInt());
+
+            MyRightTreeItem *gifItem = NULL;
+            if(label == "1")
+                gifItem = new MyRightTreeItem(dt.toString("hh:mm:ss"), rGIF1, filePath);
+            else if(label == "2")
+                gifItem = new MyRightTreeItem(dt.toString("hh:mm:ss"), rGIF2, filePath);
+
+            if(gifItem != NULL)
+                channelItem->appendRow(gifItem);
+
+            deviceItem->appendRow(channelItem);
+            dateItem->appendRow(deviceItem);
+
+        }
+    }
+
+
+    for(int i = 0; i < m_rightTreeModel_2->item(0)->rowCount(); i++)
+    {
+        if(m_rightTreeModel_2->item(0)->child(i)->text() != QDate::currentDate().toString("yyyy-MM-dd"))
+        {
+            QStandardItem *item = m_rightTreeModel_2->item(0)->takeRow(i).at(0);
+            m_rightTreeModel_1->item(0)->appendRow(item);
+        }
+    }
+
 }

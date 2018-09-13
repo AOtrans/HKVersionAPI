@@ -6,9 +6,12 @@
 #include <QDir>
 
 extern PYLoader py_loader;
-SenderThread::SenderThread(ChannelData *cdata)
+
+SenderThread::SenderThread(ChannelData *cdata, QObject *parent)
+    :QThread(parent)
 {
     this->cdata = cdata;
+    connect(this, SIGNAL(addRow(QStringList)), parent, SLOT(addRow(QStringList)) );
 }
 
 SenderThread::~SenderThread()
@@ -63,6 +66,14 @@ void SenderThread::run()
                 QList<BBox> &&bboxes = json2obj(json);
                 cdata->getFrame()->setBboxes(bboxes);
 
+                QStringList filePaths;
+                for(int i =0; i < bboxes.size(); i++)
+                {
+                    if(bboxes.at(i).savePath != "None")
+                        filePaths << bboxes.at(i).savePath;
+                }
+
+                emit addRow(filePaths);
                 Py_DECREF(ret);
             }
 

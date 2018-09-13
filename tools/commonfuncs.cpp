@@ -679,19 +679,25 @@ QList<BBox> json2obj(QString json)
             QJsonArray array = (*it).toArray();
             BBox bbox;
 
-            bbox.type = array.at(0).toInt();
-            bbox.y1 = array.at(1).toDouble();
-            bbox.x1 = array.at(2).toDouble();
+            bbox.type = array.at(0).toString().toInt();
+            bbox.y1 = array.at(1).toString().toDouble();
+            bbox.x1 = array.at(2).toString().toDouble();
 
-            bbox.y2 = array.at(3).toDouble();
-            bbox.x2 = array.at(4).toDouble();
+            bbox.y2 = array.at(3).toString().toDouble();
+            bbox.x2 = array.at(4).toString().toDouble();
 
-            bbox.predict0 = array.at(5).toDouble();
-            bbox.predict1 = array.at(6).toDouble();
-            bbox.predict2 = array.at(7).toDouble();
+            bbox.predict0 = array.at(5).toString().toDouble();
+            bbox.predict1 = array.at(6).toString().toDouble();
+            bbox.predict2 = array.at(7).toString().toDouble();
+
+            bbox.savePath = array.at(8).toString();
 
             bboxes.append(bbox);
         }
+    }
+    else
+    {
+        qDebug() << "analysis json wrong!!!";
     }
 
     return bboxes;

@@ -30,6 +30,9 @@ const char* const DEVICE_ICON = "./Settings/device.png";
 const char* const CAMERAL_ICON = "./Settings/cameral.png";
 
 const char* const DATE_ICON = "./Settings/calendar.png";
+
+const char* const RIGHT_ICON = "./Settings/right.png";
+const char* const LEFT_ICON = "./Settings/left.png";
 const int MAX_DISPLAY_FRAME = 4;
 
 

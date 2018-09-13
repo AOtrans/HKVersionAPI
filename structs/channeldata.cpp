@@ -16,7 +16,7 @@
  *        Output              :  无
  *        Return              :  无
 *************************************************************************/
-ChannelData::ChannelData()
+ChannelData::ChannelData(QObject *parent)
 {
     m_qchannelname = "";
     m_ichannelnum = -1;
@@ -25,7 +25,9 @@ ChannelData::ChannelData()
     m_estreamtype = MAINSTREAM;
 
     queueMtx = new QMutex();
-    st = new SenderThread(this);
+    this->parent = parent;
+
+    st = new SenderThread(this, parent);
 }
 
 ChannelData::ChannelData(const ChannelData& cdata)
@@ -55,7 +57,9 @@ ChannelData::ChannelData(const ChannelData& cdata)
     queueMtx = new QMutex();
 
     imageNO = cdata.imageNO;
-    st = new SenderThread(this);
+    parent = cdata.parent;
+
+    st = new SenderThread(this, parent);
 }
 
 /************************************************************************

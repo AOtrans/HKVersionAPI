@@ -11,12 +11,15 @@ class SenderThread : public QThread
 {
     Q_OBJECT
 public:
-    SenderThread(ChannelData *cdata);
+    SenderThread(ChannelData *cdata, QObject *parent);
     virtual ~SenderThread() override;
     virtual void run() override;
 
 private:
     ChannelData *cdata = NULL;
+
+signals:
+    void addRow(QStringList);
 };
 
 #endif // SENDERTHREAD_H
