@@ -164,6 +164,7 @@ void TestForm::initRightTree()
 
         QDir date_dir(dateInfo.filePath());
         foreach (QFileInfo deviceInfo, date_dir.entryInfoList(QStringList(), QDir::Dirs | QDir::NoDotAndDotDot)){
+            bool hasGifs = false;
             MyRightTreeItem *deviceItem = new MyRightTreeItem(m_nameMap[deviceInfo.fileName()], rDEVICE, deviceInfo.fileName());
 
             QDir device_dir(deviceInfo.filePath());
@@ -186,12 +187,17 @@ void TestForm::initRightTree()
 
                     if(gifItem != NULL)
                         channelItem->appendRow(gifItem);
+
+                    hasGifs = true;
                 }
 
                 deviceItem->appendRow(channelItem);
             }
 
-            dateItem->appendRow(deviceItem);
+            if(hasGifs)
+                dateItem->appendRow(deviceItem);
+            else
+                delete deviceItem;
         }
     }
 
@@ -960,6 +966,59 @@ bool TestForm::noMoreFramePlay()
     return true;
 }
 
+QStandardItem *TestForm::findDateItem(QString date)
+{
+    //find date in today list
+    for(int i = 0; i < m_rightTreeModel_2->item(0)->rowCount(); i++)
+    {
+        if(m_rightTreeModel_2->item(0)->child(i)->text() == date)
+        {
+            return m_rightTreeModel_2->item(0)->child(i);
+        }
+    }
+
+    //find date in history list
+    for(int i = 0; i < m_rightTreeModel_1->item(0)->rowCount(); i++)
+    {
+        if(m_rightTreeModel_1->item(0)->child(i)->text() == date)
+        {
+            return m_rightTreeModel_1->item(0)->child(i);
+        }
+    }
+
+    return NULL;
+}
+
+QStandardItem *TestForm::findDeviceItem(QString deviceSerial, QStandardItem *dateItem)
+{
+    for(int i = 0; i < dateItem->rowCount(); i++)
+    {
+        MyRightTreeItem* deviceItem = (MyRightTreeItem*)dateItem->child(i);
+
+        if(deviceItem->bindData() == deviceSerial)
+        {
+            return deviceItem;
+        }
+    }
+
+    return NULL;
+}
+
+QStandardItem *TestForm::findChannelItem(QString channel, QStandardItem *deviceItem)
+{
+    for(int i = 0; i < deviceItem->rowCount(); i++)
+    {
+        QStandardItem* channelItem = deviceItem->child(i);
+
+        if(channelItem->text() == channel)
+        {
+            return channelItem;
+        }
+    }
+
+    return NULL;
+}
+
 void TestForm::on_pbcleft_clicked()
 {
     if(leftTreeExpand)
@@ -1005,6 +1064,9 @@ void TestForm::expandTreeClicked(const QModelIndex &)
 void TestForm::addRow(QStringList filePaths)
 {
     QString date, deviceSerial, channel;
+    QStandardItem *dateItem = NULL;
+    QStandardItem *deviceItem = NULL;
+    QStandardItem *channelItem = NULL;
 
     foreach (QString filePath, filePaths) {
         QString fileName = filePath.mid(filePath.lastIndexOf("/") + 1).replace("\.gif", "");
@@ -1019,94 +1081,46 @@ void TestForm::addRow(QStringList filePaths)
         path = path.mid(0, path.lastIndexOf("/"));
 
         date = path.mid(path.lastIndexOf("/") + 1);
-
-        QStandardItem *dateItem = NULL;
-        if(m_rightTreeModel_2->item(0)->rowCount() == 0 || date != m_rightTreeModel_2->item(0)->child(0)->text())
+        //if not find target channel
+        if(channelItem == NULL)
         {
-            dateItem = new MyRightTreeItem(date, rDATE);
-            m_rightTreeModel_2->item(0)->appendRow(dateItem);
-        }
-        else
-        {
-            dateItem = m_rightTreeModel_2->item(0)->child(0);
-        }
-
-        bool findDevice = false;
-        for(int i = 0; i < dateItem->rowCount(); i++)
-        {
-            MyRightTreeItem* deviceItem = (MyRightTreeItem*)dateItem->child(i);
-
-            if(deviceItem->bindData() == deviceSerial)
+            dateItem = findDateItem(date);
+            if(dateItem == NULL)
             {
-                findDevice = true;
-                bool findChannel = false;
-                for(int j = 0; j < deviceItem->rowCount(); j++)
-                {
-                    QStandardItem* channelItem = deviceItem->child(j);
+                dateItem = new MyRightTreeItem(date, rDATE);
+                if (date == QDate::currentDate().toString("yyyy-MM-dd"))
+                    m_rightTreeModel_2->item(0)->appendRow(dateItem);
+                else
+                    m_rightTreeModel_1->item(0)->appendRow(dateItem);
+            }
 
-                    if(channelItem->text() == channel)
-                    {
-                        findChannel = true;
-                        QString label = fileName.split("_").at(0);
-                        QDateTime dt = QDateTime::fromTime_t(fileName.split("_").at(1).toInt());
+            deviceItem = findDeviceItem(deviceSerial, dateItem);
+            if(deviceItem == NULL)
+            {
+                deviceItem = new MyRightTreeItem(m_nameMap[deviceSerial], rDEVICE, deviceSerial);
+                dateItem->appendRow(deviceItem);
+            }
 
-                        MyRightTreeItem *gifItem = NULL;
-                        if(label == "1")
-                            gifItem = new MyRightTreeItem(dt.toString("hh:mm:ss"), rGIF1, filePath);
-                        else if(label == "2")
-                            gifItem = new MyRightTreeItem(dt.toString("hh:mm:ss"), rGIF2, filePath);
-
-                        if(gifItem != NULL)
-                            channelItem->appendRow(gifItem);
-
-                        break;
-                    }
-                }
-
-                if(!findChannel)
-                {
-                    MyRightTreeItem *channelItem = new MyRightTreeItem(channel, rCHANNEL);
-
-                    QString label = fileName.split("_").at(0);
-                    QDateTime dt = QDateTime::fromTime_t(fileName.split("_").at(1).toInt());
-
-                    MyRightTreeItem *gifItem = NULL;
-                    if(label == "1")
-                        gifItem = new MyRightTreeItem(dt.toString("hh:mm:ss"), rGIF1, filePath);
-                    else if(label == "2")
-                        gifItem = new MyRightTreeItem(dt.toString("hh:mm:ss"), rGIF2, filePath);
-
-                    if(gifItem != NULL)
-                        channelItem->appendRow(gifItem);
-
-                    deviceItem->appendRow(channelItem);
-                }
-
-                break;
+            channelItem = findChannelItem(channel, deviceItem);
+            if(channelItem == NULL)
+            {
+                channelItem = new MyRightTreeItem(channel, rCHANNEL);
+                deviceItem->appendRow(channelItem);
             }
         }
 
-        if(!findDevice)
-        {
-            MyRightTreeItem *deviceItem = new MyRightTreeItem(m_nameMap[deviceSerial], rDEVICE, deviceSerial);
-            MyRightTreeItem *channelItem = new MyRightTreeItem(channel, rCHANNEL);
+        QString label = fileName.split("_").at(0);
+        QDateTime dt = QDateTime::fromTime_t(fileName.split("_").at(1).toInt());
 
-            QString label = fileName.split("_").at(0);
-            QDateTime dt = QDateTime::fromTime_t(fileName.split("_").at(1).toInt());
+        MyRightTreeItem *gifItem = NULL;
+        if(label == "1")
+            gifItem = new MyRightTreeItem(dt.toString("hh:mm:ss"), rGIF1, filePath);
+        else if(label == "2")
+            gifItem = new MyRightTreeItem(dt.toString("hh:mm:ss"), rGIF2, filePath);
 
-            MyRightTreeItem *gifItem = NULL;
-            if(label == "1")
-                gifItem = new MyRightTreeItem(dt.toString("hh:mm:ss"), rGIF1, filePath);
-            else if(label == "2")
-                gifItem = new MyRightTreeItem(dt.toString("hh:mm:ss"), rGIF2, filePath);
+        if(gifItem != NULL)
+            channelItem->appendRow(gifItem);
 
-            if(gifItem != NULL)
-                channelItem->appendRow(gifItem);
-
-            deviceItem->appendRow(channelItem);
-            dateItem->appendRow(deviceItem);
-
-        }
     }
 
 
@@ -1119,4 +1133,9 @@ void TestForm::addRow(QStringList filePaths)
         }
     }
 
+    if(m_rightTreeModel_2->item(0)->rowCount() == 0)
+    {
+        QStandardItem *item = new MyRightTreeItem(QDate::currentDate().toString("yyyy-MM-dd"), rDATE);
+        m_rightTreeModel_2->item(0)->appendRow(item);
+    }
 }
