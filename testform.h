@@ -51,6 +51,10 @@ private:
     DisplayFrame* getFreeFrame();
     bool noMoreFramePlay();
 
+    QStandardItem* findDateItem(QString date);
+    QStandardItem* findDeviceItem(QString deviceSerial, QStandardItem* dateItem);
+    QStandardItem* findChannelItem(QString channel, QStandardItem* deviceItem);
+
 private slots:
 //    void on_pbRealPaly_clicked();
 
