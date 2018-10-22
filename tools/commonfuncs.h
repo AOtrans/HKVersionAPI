@@ -19,6 +19,7 @@
 #include "opencv/highgui.h"
 
 #include"testform.h"
+#include "common.h"
 class TestForm;
 
 QImage cvMat2Image(cv::Mat&);

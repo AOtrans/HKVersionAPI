@@ -41,6 +41,7 @@ int DisplayFrame::getId() const
 
 void DisplayFrame::paintEvent(QPaintEvent *event)
 {
+    matlock.lock();
     QPainter painter(this);
 
     if( blackbg == false && frameMat.data != NULL)
@@ -65,7 +66,23 @@ void DisplayFrame::paintEvent(QPaintEvent *event)
         }
 
         cv::cvtColor(frameMat, frameMat, CV_BGR2RGB);
-        painter.drawPixmap(0, 0, this->width(), this->height(), QPixmap::fromImage(cvMat2Image(frameMat)) );
+
+        float img_aspect = float(frameMat.cols) / float(frameMat.rows);
+        float frame_aspect = float(this->width()) / float(this->height());
+
+        int width = this->width();
+        int height = this->height();
+
+        if(img_aspect > frame_aspect)
+        {
+            width -= 6;
+            painter.drawPixmap(3, (height - width/img_aspect)/2, width, width/img_aspect, QPixmap::fromImage(cvMat2Image(frameMat)) );
+        }
+        else
+        {
+            height -= 6;
+            painter.drawPixmap((width - height*img_aspect)/2, 3, height*img_aspect, height, QPixmap::fromImage(cvMat2Image(frameMat)) );
+        }
     }
     else
     {
@@ -73,6 +90,7 @@ void DisplayFrame::paintEvent(QPaintEvent *event)
         bg.fill(QColor(0, 0, 0));
         painter.drawPixmap(0, 0, this->width(), this->height(), bg);
     }
+    matlock.unlock();
 
     QFrame::paintEvent(event);
 }

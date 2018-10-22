@@ -119,16 +119,10 @@ void TestForm::initLeftTree()
     m_leftTreeModel->appendRow(rootItem);
     m_leftTreeModel->setHeaderData(0, Qt::Horizontal, "DevicesTree");
 
-    QHeaderView *view = new QHeaderView(Qt::Horizontal, this);
-    view->setSectionResizeMode(QHeaderView::Stretch);
-
-    ui->leftTreeView->setHeader(view);
-
     ui->leftTreeView->setModel(m_leftTreeModel);
 
     //enable right clicked signal
     ui->leftTreeView->setContextMenuPolicy(Qt::CustomContextMenu);
-    ui->leftTreeView->expandAll();
 
     //connect clicked signals and slots
     connect(ui->leftTreeView, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(onLeftTreeRightClicked(QPoint)));
@@ -136,6 +130,8 @@ void TestForm::initLeftTree()
 
     connect(ui->leftTreeView, SIGNAL(expanded(QModelIndex)), this, SLOT(expandTreeClicked(QModelIndex)));
     connect(ui->leftTreeView, SIGNAL(collapsed(QModelIndex)), this, SLOT(expandTreeClicked(QModelIndex)));
+
+    ui->leftTreeView->expandAll();
 
 }
 
@@ -221,6 +217,16 @@ void TestForm::initRightTree()
     connect(ui->rightTreeView_2, SIGNAL(collapsed(QModelIndex)), this, SLOT(expandTreeClicked(QModelIndex)));
 }
 
+void TestForm::add2GridLayout(DisplayFrame *frame)
+{
+    int count = ui->gridLayout->count();
+
+    int row = count/FRAME_COL_COUNT;
+    int col = count%FRAME_COL_COUNT;
+
+    ui->gridLayout->addWidget(frame, row, col);
+}
+
 void TestForm::initSth()
 {
 //    QString save_path = QString(PATH_PREFIX) + "/" + QDate::currentDate().toString("yyyy-MM-dd");
@@ -287,7 +293,7 @@ bool TestForm::testLogin(QString mapId)
     {
         QString snum = QString::fromLocal8Bit((char*)device->m_deviceinfo.sSerialNumber);
         qDebug() << "Device Serial:" << snum;
-        //set SerialNum as an unequal dirpath
+        //set SerialNum to make an unequal dirpath
         device->setSerialNum(snum);
 
 
@@ -788,7 +794,7 @@ void TestForm::onLeftTreeDoubleClicked(const QModelIndex& index)
         ChannelData *cdata = (ChannelData*)item->getBindData();
         if(cdata->isPlaying == true)
         {
-            stopRealPlay(cdata);
+            stopRealPlay(cdata, item);
         }
         else
         {
@@ -799,7 +805,7 @@ void TestForm::onLeftTreeDoubleClicked(const QModelIndex& index)
                 frame->setIsPlaying(true);
                 cdata->frame = frame;
                 cdata->isPlaying = true;
-                startRealPlay(cdata);
+                startRealPlay(cdata, item);
             }
             else
             {
@@ -822,7 +828,7 @@ void TestForm::onRightTreeDoubleClicked(const QModelIndex& index)
     }
 }
 
-void TestForm::startRealPlay(ChannelData *cdata)
+void TestForm::startRealPlay(ChannelData *cdata, QStandardItem *item)
 {
     qDebug() << "------------------RealPlay--------------------";
 
@@ -889,17 +895,18 @@ void TestForm::startRealPlay(ChannelData *cdata)
 
         cdata->setRealhandle(realHandle);
         cdata->frame->setBlackbg(false);
-        cdata->frame->show();
+        item->setIcon(QIcon(CAMERAL_PLAYING_ICON));
         //1111111111111111111
         cdata->startLS();
         //1111111111111111111
     }
 }
 
-void TestForm::stopRealPlay(ChannelData *cdata)
+void TestForm::stopRealPlay(ChannelData *cdata, QStandardItem *item)
 {
     cdata->stopLS();
     NET_DVR_StopRealPlay(cdata->getRealhandle());
+    item->setIcon(QIcon(CAMERAL_ICON));
 
     PlayM4_FreePort(cdata->getDecodePort());
     cdata->setDecodePort(-1);
@@ -920,13 +927,16 @@ void TestForm::stopRealPlay(ChannelData *cdata)
 
     if(!noMoreFramePlay())
     {
+        ui->gridLayout->removeWidget(frame);
         frame->hide();
     }
+
+    sortFrames();
 }
 
 DisplayFrame *TestForm::getFreeFrame()
 {
-    //try to get a free and not hide frame
+    //try to get a free and not hidden frame
     foreach (DisplayFrame* frame, m_displayFrames) {
         if(!frame->getIsPlaying()&&!frame->isHidden())
         {
@@ -934,10 +944,12 @@ DisplayFrame *TestForm::getFreeFrame()
         }
     }
 
-    //try to get a free and hide frame
+    //try to get a free and hidden frame
     foreach (DisplayFrame* frame, m_displayFrames) {
         if(!frame->getIsPlaying())
         {
+            add2GridLayout(frame);
+            frame->show();
             return frame;
         }
     }
@@ -947,7 +959,8 @@ DisplayFrame *TestForm::getFreeFrame()
     {
         DisplayFrame *frame = new DisplayFrame(this, m_displayFrames.size());
         m_displayFrames.append(frame);
-        ui->gridLayout->addWidget(frame);
+        add2GridLayout(frame);
+        frame->show();
         return frame;
     }
 
@@ -1017,6 +1030,31 @@ QStandardItem *TestForm::findChannelItem(QString channel, QStandardItem *deviceI
     }
 
     return NULL;
+}
+
+void TestForm::sortFrames()
+{
+    QVector<QWidget *> widgets;
+    for(int i = 0; i < FRAME_ROW_COUNT; i++)
+    {
+        for(int j = 0; j < FRAME_COL_COUNT; j++)
+        {
+            QLayoutItem* w = ui->gridLayout->itemAtPosition(i, j);
+            if(w != NULL)
+            {
+                widgets.append(w->widget());
+                ui->gridLayout->removeWidget(w->widget());
+            }
+        }
+    }
+
+    for(int i = 0; i < widgets.size(); i++)
+    {
+        int row = i/FRAME_COL_COUNT;
+        int col = i%FRAME_COL_COUNT;
+
+        ui->gridLayout->addWidget(widgets.at(i), row, col);
+    }
 }
 
 void TestForm::on_pbcleft_clicked()
@@ -1123,7 +1161,7 @@ void TestForm::addRow(QStringList filePaths)
 
     }
 
-
+    //make sure dateItem inside  the right tree
     for(int i = 0; i < m_rightTreeModel_2->item(0)->rowCount(); i++)
     {
         if(m_rightTreeModel_2->item(0)->child(i)->text() != QDate::currentDate().toString("yyyy-MM-dd"))
@@ -1133,6 +1171,7 @@ void TestForm::addRow(QStringList filePaths)
         }
     }
 
+    //make sure today tree has date Item
     if(m_rightTreeModel_2->item(0)->rowCount() == 0)
     {
         QStandardItem *item = new MyRightTreeItem(QDate::currentDate().toString("yyyy-MM-dd"), rDATE);

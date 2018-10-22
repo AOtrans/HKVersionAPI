@@ -7,6 +7,7 @@
 #include <QLabel>
 #include "tools/commonfuncs.h"
 #include "structs/commonstructs.h"
+#include <QMutex>
 
 //class PainterEvent;
 
@@ -30,8 +31,10 @@ public:
 
     bool changeMat(cv::Mat mat)
     {
+        matlock.lock();
         frameMat = mat;
         emit doUpdate();
+        matlock.unlock();
         return true;
     }
 
@@ -51,6 +54,7 @@ private:
     QList<BBox> bboxes;
     cv::Mat frameMat;
     bool blackbg = true;
+    QMutex matlock;
 };
 
 
