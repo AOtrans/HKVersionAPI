@@ -34,6 +34,8 @@ public:
     void initLeftTree();
     void initRightTree();
 
+    void add2GridLayout(DisplayFrame *);
+
     void initSth();
 private:
     void showRootMenu(QPoint &point);
@@ -44,9 +46,9 @@ private:
     void loginAllDevices();
     void logoutAllDevices();
 
-    void startRealPlay(ChannelData *cdata);
+    void startRealPlay(ChannelData *cdata, QStandardItem *item);
 
-    void stopRealPlay(ChannelData *cdata);
+    void stopRealPlay(ChannelData *cdata, QStandardItem *item);
 
     DisplayFrame* getFreeFrame();
     bool noMoreFramePlay();
@@ -54,6 +56,8 @@ private:
     QStandardItem* findDateItem(QString date);
     QStandardItem* findDeviceItem(QString deviceSerial, QStandardItem* dateItem);
     QStandardItem* findChannelItem(QString channel, QStandardItem* deviceItem);
+
+    void sortFrames();
 
 private slots:
 //    void on_pbRealPaly_clicked();

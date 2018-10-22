@@ -122,6 +122,7 @@ PyObject* PYLoader::callPyMethod(PyObject* para, PyObject* para2)
         {
             qDebug() << "call func successed";
         }
+
         return ret;
     }
 }

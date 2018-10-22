@@ -22,19 +22,25 @@
 
 
 const char* const XML_PATH = "./Settings/devices.xml";
-const char* const PATH_PREFIX = "/home/zg/yaochang/gifs";
+const char* const PATH_PREFIX = "/home/zg/1T/gifs";       //"/home/zg/yaochang/gifs";
 const char* const WARNING_ICON_1 = "./Settings/warning_1.png";
 const char* const WARNING_ICON_2 = "./Settings/warning_2.png";
 
 const char* const DEVICE_ICON = "./Settings/device.png";
 const char* const CAMERAL_ICON = "./Settings/cameral.png";
+const char* const CAMERAL_PLAYING_ICON = "./Settings/cameral_playing.png";
 
 const char* const DATE_ICON = "./Settings/calendar.png";
 
 const char* const RIGHT_ICON = "./Settings/right.png";
 const char* const LEFT_ICON = "./Settings/left.png";
-const int MAX_DISPLAY_FRAME = 4;
 
+const int FRAME_ROW_COUNT = 2;
+const int FRAME_COL_COUNT = 2;
+const int MAX_DISPLAY_FRAME = FRAME_COL_COUNT * FRAME_ROW_COUNT;
+
+const bool DEBUG_LOG = true;
+const int CONNECT_TIMEOUT = 3000;
 
 #endif
 

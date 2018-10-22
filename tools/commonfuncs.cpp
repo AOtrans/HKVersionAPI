@@ -630,10 +630,10 @@ bool sdkInit(QWidget* parent)
     }
 
     //print sdk logs
-    NET_DVR_SetLogPrint(true);
+    NET_DVR_SetLogPrint(DEBUG_LOG);
 
     //set max timeout
-    NET_DVR_SetConnectTime(3000, 1);
+    NET_DVR_SetConnectTime(CONNECT_TIMEOUT, 1);
     //注册接收异常、重连等消息的窗口句柄或回调函数。
     NET_DVR_SetExceptionCallBack_V30(0, NULL, ExceptionCallBack, parent);
 
