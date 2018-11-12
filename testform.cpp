@@ -172,14 +172,24 @@ void TestForm::initRightTree()
                 filter << "*.gif";
                 foreach (QFileInfo gifInfo, channel_dir.entryInfoList(filter, QDir::Files)){
                     QString fileName  = gifInfo.fileName().replace("\.gif", "");
-                    QString label = fileName.split("_").at(0);
-                    QDateTime dt = QDateTime::fromTime_t(fileName.split("_").at(1).toInt());
+
+                    QString tag = fileName.split("_").at(0);
+                    QString label = fileName.split("_").at(1);
+                    QDateTime dt = QDateTime::fromTime_t(fileName.split("_").at(2).toInt());
 
                     MyRightTreeItem *gifItem = NULL;
-                    if(label == "1")
-                        gifItem = new MyRightTreeItem(dt.toString("hh:mm:ss"), rGIF1, gifInfo.filePath());
-                    else if(label == "2")
-                        gifItem = new MyRightTreeItem(dt.toString("hh:mm:ss"), rGIF2, gifInfo.filePath());
+
+                    if(tag != WATCHED)
+                    {
+                        if(label == "1")
+                            gifItem = new MyRightTreeItem(dt.toString("hh:mm:ss"), rGIF1, gifInfo.filePath());
+                        else if(label == "2")
+                            gifItem = new MyRightTreeItem(dt.toString("hh:mm:ss"), rGIF2, gifInfo.filePath());
+                    }
+                    else
+                    {
+                        gifItem = new MyRightTreeItem(dt.toString("hh:mm:ss"), rGIF3, gifInfo.filePath());
+                    }
 
                     if(gifItem != NULL)
                         channelItem->appendRow(gifItem);
@@ -821,9 +831,9 @@ void TestForm::onRightTreeDoubleClicked(const QModelIndex& index)
     //locate current clicked item
     MyRightTreeItem *item = (MyRightTreeItem*)model->itemFromIndex(index);
 
-    if(item->itemType() == rGIF1 || item->itemType() == rGIF2)
+    if(item->itemType() == rGIF1 || item->itemType() == rGIF2 || item->itemType() == rGIF3)
     {
-        GifDialog *d = new GifDialog(item->parent()->parent()->index().data().toString(), item->index().data().toString(), item->bindData(), this);
+        GifDialog *d = new GifDialog(item->parent()->parent()->index().data().toString(), item->index().data().toString(), item->bindData(), this, item);
         d->show();
     }
 }
@@ -1147,8 +1157,8 @@ void TestForm::addRow(QStringList filePaths)
             }
         }
 
-        QString label = fileName.split("_").at(0);
-        QDateTime dt = QDateTime::fromTime_t(fileName.split("_").at(1).toInt());
+        QString label = fileName.split("_").at(1);
+        QDateTime dt = QDateTime::fromTime_t(fileName.split("_").at(2).toInt());
 
         MyRightTreeItem *gifItem = NULL;
         if(label == "1")

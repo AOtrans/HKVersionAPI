@@ -15,7 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
-    <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,5">
+    <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,5,0">
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="4,1">
        <item>
@@ -90,6 +90,13 @@
          </widget>
         </item>
        </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pbConfirm">
+       <property name="text">
+        <string>confirm</string>
+       </property>
       </widget>
      </item>
     </layout>
