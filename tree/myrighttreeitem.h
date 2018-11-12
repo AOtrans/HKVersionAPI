@@ -3,7 +3,7 @@
 #include <QStandardItem>
 #include "common.h"
 
-enum RightTreeItemType{rROOT, rDATE, rDEVICE, rCHANNEL, rGIF1, rGIF2, rOTHER};
+enum RightTreeItemType{rROOT, rDATE, rDEVICE, rCHANNEL, rGIF1, rGIF2, rGIF3, rOTHER};
 
 class MyRightTreeItem : public QStandardItem
 {

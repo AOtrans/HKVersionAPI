@@ -20,6 +20,8 @@
 #define DBG(a, b) 
 #endif
 
+const char* const NEW_RECORD = "newrecord";
+const char* const WATCHED = "watched";
 
 const char* const XML_PATH = "./Settings/devices.xml";
 const char* const PATH_PREFIX = "/home/zg/1T/gifs";       //"/home/zg/yaochang/gifs";
