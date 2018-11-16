@@ -69,6 +69,8 @@ public:
     QString getMapId() const;
     void setMapId(const QString &value);
 
+    bool isPlaying();
+
 private:
     //正在预览或录像0假1真
     int     m_irealplaying;

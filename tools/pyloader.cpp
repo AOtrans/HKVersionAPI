@@ -1,6 +1,7 @@
 #include "pyloader.h"
 #include <QDebug>
 #include <QThread>
+#include "common.h"
 
 PYLoader::PYLoader()
 {
@@ -9,19 +10,7 @@ PYLoader::PYLoader()
 
 PYLoader::~PYLoader()
 {
-    PyGILState_Ensure();
-    qDebug() << "destory py";
-    if(pClass)
-        Py_DECREF(pClass);
-    if(pInstance_hi_class)
-        Py_DECREF(pInstance_hi_class );
-    if(pModule)
-        Py_DECREF(pModule);
-    if(pDict)
-        Py_DECREF(pDict);
 
-
-    Py_Finalize(); // 与初始化对应
 }
 
 bool PYLoader::initPY(int argc, char *argv[])
@@ -49,7 +38,7 @@ bool PYLoader::initPY(int argc, char *argv[])
     PySys_SetArgv(argc, argv);
     PyRun_SimpleString("import sys");
     PyRun_SimpleString("import os");
-    PyRun_SimpleString("sys.path.append('/home/zg/yaochang')");
+    PyRun_SimpleString(QString("sys.path.append('%1')").arg(PY_ROOT_PATH).toStdString());
     //drop some warnings
     PyRun_SimpleString("os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'");
 
@@ -100,6 +89,23 @@ bool PYLoader::initPY(int argc, char *argv[])
 
     qDebug() << "py init done";
     return true;
+}
+
+void PYLoader::deinitPY()
+{
+    PyGILState_Ensure();
+    qDebug() << "destory py";
+    if(pClass)
+        Py_DECREF(pClass);
+    if(pInstance_hi_class)
+        Py_DECREF(pInstance_hi_class );
+    if(pModule)
+        Py_DECREF(pModule);
+    if(pDict)
+        Py_DECREF(pDict);
+
+
+    Py_Finalize(); // 与初始化对应
 }
 
 PyObject* PYLoader::callPyMethod(PyObject* para, PyObject* para2)
