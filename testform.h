@@ -30,13 +30,13 @@ public:
     explicit TestForm(int argc, char *argv[], int w, int h, QWidget *parent = 0);
     ~TestForm();
 
-    void showVideo(cv::Mat img, ChannelData *cdata);
+    void showVideo(cv::Mat img, ChannelData *cdata);//feed a new img
     void initLeftTree();
     void initRightTree();
 
     void add2GridLayout(DisplayFrame *);
 
-    void initSth();
+    void initSth();//sth todo before initalize
 private:
     void showRootMenu(QPoint &point);
     void showDeviceMenu(QPoint &point);

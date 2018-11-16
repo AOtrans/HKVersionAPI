@@ -265,6 +265,31 @@ void DeviceData::setMapId(const QString &value)
     mapId = value;
 }
 
+bool DeviceData::isPlaying()
+{
+    for(int i=0; i<m_qlistchanneldata.size(); i++)
+    {
+        if(m_qlistchanneldata.at(i).isPlaying)
+            return true;
+    }
+
+    return false;
+}
+
+void DeviceData::shutdown()
+{
+    for(int i=0; i<m_qlistchanneldata.size(); i++)
+    {
+        const ChannelData &cdata = m_qlistchanneldata.at(i);
+        if(cdata.isPlaying)
+        {
+            cdata.stopLS();
+            NET_DVR_StopRealPlay(cdata.getRealhandle());
+            PlayM4_FreePort(cdata.getDecodePort());
+        }
+    }
+}
+
 NET_DVR_DEVICEINFO_V30 DeviceData::getDeviceInfo()
 {
     

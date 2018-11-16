@@ -19,6 +19,8 @@
 #else
 #define DBG(a, b) 
 #endif
+const char* const PY_ROOT_PATH = "/home/zg/yaochang";
+const char* const SINGAL_LOCKER_PATH = "./Settings/singal.lock";
 
 const char* const NEW_RECORD = "newrecord";
 const char* const WATCHED = "watched";

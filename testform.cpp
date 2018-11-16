@@ -35,14 +35,14 @@ TestForm::TestForm(int argc, char *argv[], int w, int h, QWidget *parent) :
     bar.setValue(1);
     qApp->processEvents();
 
-    bar.setValue(25);
-    qApp->processEvents();
-
     //initialize python env
     if(!py_loader.initPY(argc, argv))
     {
         QMessageBox::warning(this, "error", "load PY func failed");
     }
+
+    bar.setValue(50);
+    qApp->processEvents();
 
     //create a defalut frame to show on main widget
     DisplayFrame *frame = new DisplayFrame(this, 0);
@@ -57,9 +57,9 @@ TestForm::TestForm(int argc, char *argv[], int w, int h, QWidget *parent) :
     {
         //reload settings from xml file
         if(!analysis(m_deviceList, XML_PATH))
-            qDebug() << "analysis failed";
+            QMessageBox::warning(this, "error", "load XML file failed");
 
-        //try to login all devices
+        //try to login all devices&init trees
         loginAllDevices();
         initLeftTree();
         initRightTree();
@@ -78,6 +78,7 @@ TestForm::~TestForm()
 
     logoutAllDevices();
     NET_DVR_Cleanup();
+    py_loader.deinitPY();
 }
 
 //display singal image
@@ -446,6 +447,7 @@ void TestForm::logoutAllDevices()
         //if has login
         if(uid >= 0)
         {
+            ddata.shutdown();
             NET_DVR_Logout(uid);
         }
     }
@@ -730,6 +732,10 @@ void TestForm::showAddDialog(bool)
 
 void TestForm::showAltDialog(bool)
 {
+    if(m_deviceList[m_currentTreeItem->getMapId()].isPlaying())
+        QMessageBox::information(this, "infomation", "please close device first");
+        return;
+
     DeviceDialog *dialog = new DeviceDialog(&m_deviceList[m_currentTreeItem->getMapId()], ALT, this);
     connect(dialog, SIGNAL(altDevice(DeviceData*)), this, SLOT(altDevice(DeviceData*)));
     dialog->exec();
@@ -739,6 +745,10 @@ void TestForm::deleteDevice(bool)
 {
     if(QMessageBox::information(this, "infomation", "confirm to remove?", QMessageBox::Cancel, QMessageBox::Ok) == QMessageBox::Ok)
     {
+        if(m_deviceList[m_currentTreeItem->getMapId()].isPlaying())
+            QMessageBox::information(this, "infomation", "please close device first");
+            return;
+
         m_deviceList.remove(m_currentTreeItem->getMapId());
         m_leftTreeModel->removeRow(m_currentTreeItem->row(), m_currentTreeItem->parent()->index());
         resetDeviceTreeXml(m_deviceList, XML_PATH);
@@ -795,6 +805,7 @@ void TestForm::addDevice(DeviceData *newdd)
 
 void TestForm::onLeftTreeDoubleClicked(const QModelIndex& index)
 {
+    ui->leftTreeView->blockSignals(true);
     //locate current clicked item
     MyLeftTreeItem *item = (MyLeftTreeItem*)m_leftTreeModel->itemFromIndex(index);
 
@@ -823,6 +834,7 @@ void TestForm::onLeftTreeDoubleClicked(const QModelIndex& index)
             }
         }
     }
+    ui->leftTreeView->blockSignals(false);
 }
 
 void TestForm::onRightTreeDoubleClicked(const QModelIndex& index)
