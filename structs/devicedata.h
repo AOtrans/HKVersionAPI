@@ -71,6 +71,8 @@ public:
 
     bool isPlaying();
 
+    void shutdown();
+
 private:
     //正在预览或录像0假1真
     int     m_irealplaying;
