@@ -280,7 +280,7 @@ void DeviceData::shutdown()
 {
     for(int i=0; i<m_qlistchanneldata.size(); i++)
     {
-        const ChannelData &cdata = m_qlistchanneldata.at(i);
+        ChannelData &cdata = m_qlistchanneldata[i];
         if(cdata.isPlaying)
         {
             cdata.stopLS();

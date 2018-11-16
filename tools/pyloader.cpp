@@ -38,7 +38,7 @@ bool PYLoader::initPY(int argc, char *argv[])
     PySys_SetArgv(argc, argv);
     PyRun_SimpleString("import sys");
     PyRun_SimpleString("import os");
-    PyRun_SimpleString(QString("sys.path.append('%1')").arg(PY_ROOT_PATH).toStdString());
+    PyRun_SimpleString(QString("sys.path.append('%1')").arg(PY_ROOT_PATH).toStdString().c_str());
     //drop some warnings
     PyRun_SimpleString("os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'");
 
