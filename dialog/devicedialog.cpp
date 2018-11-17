@@ -1,14 +1,16 @@
 #include "devicedialog.h"
 #include "ui_devicedialog.h"
 #include <QDebug>
+#include <QMessageBox>
 
-DeviceDialog::DeviceDialog(DeviceData *ddata, TYPE t, QWidget *parent) :
+DeviceDialog::DeviceDialog(DeviceData *ddata, TYPE t, const QStringList& checklist, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DeviceDialog)
 {
     ui->setupUi(this);
     this->ddata = ddata;
     this->t = t;
+    this->checklist = checklist;
 
     setAttribute(Qt::WA_DeleteOnClose);
 
@@ -40,6 +42,12 @@ void DeviceDialog::on_pb_cancel_clicked()
 
 void DeviceDialog::on_pb_confirm_clicked()
 {
+    if(checklist.indexOf(ui->leIp->text())!=-1)
+    {
+        QMessageBox::information(this, "info", ui->leIp->text()+" already in devices list");
+        return;
+    }
+
     if(t == ALT)
     {
         ddata->setDeviceName(ui->leName->text() );

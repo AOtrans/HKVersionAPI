@@ -228,6 +228,17 @@ void TestForm::initRightTree()
     connect(ui->rightTreeView_2, SIGNAL(collapsed(QModelIndex)), this, SLOT(expandTreeClicked(QModelIndex)));
 }
 
+const QStringList &TestForm::getCheckList()
+{
+    QStringList ls;
+
+    foreach (QString key, m_deviceList.keys()) {
+        ls.append(m_deviceList[key].getIP());
+    }
+
+    return ls;
+}
+
 void TestForm::add2GridLayout(DisplayFrame *frame)
 {
     int count = ui->gridLayout->count();
@@ -725,7 +736,7 @@ void TestForm::onLeftTreeRightClicked(QPoint point)
 
 void TestForm::showAddDialog(bool)
 {
-    DeviceDialog *dialog = new DeviceDialog(NULL, ADD, this);
+    DeviceDialog *dialog = new DeviceDialog(NULL, ADD, getCheckList(), this);
     connect(dialog, SIGNAL(addDevice(DeviceData*)), this, SLOT(addDevice(DeviceData*)));
     dialog->exec();
 }
@@ -736,7 +747,7 @@ void TestForm::showAltDialog(bool)
         QMessageBox::information(this, "infomation", "please close device first");
         return;
 
-    DeviceDialog *dialog = new DeviceDialog(&m_deviceList[m_currentTreeItem->getMapId()], ALT, this);
+    DeviceDialog *dialog = new DeviceDialog(&m_deviceList[m_currentTreeItem->getMapId()], ALT, getCheckList(), this);
     connect(dialog, SIGNAL(altDevice(DeviceData*)), this, SLOT(altDevice(DeviceData*)));
     dialog->exec();
 }
