@@ -42,14 +42,15 @@ void DeviceDialog::on_pb_cancel_clicked()
 
 void DeviceDialog::on_pb_confirm_clicked()
 {
-    if(checklist.indexOf(ui->leIp->text())!=-1)
-    {
-        QMessageBox::information(this, "info", ui->leIp->text()+" already in devices list");
-        return;
-    }
-
     if(t == ALT)
     {
+        checklist.removeOne(ddata->getIP());
+        if(checklist.indexOf(ui->leIp->text())!=-1)
+        {
+            QMessageBox::information(this, "info", ui->leIp->text()+" already in devices list");
+            return;
+        }
+
         ddata->setDeviceName(ui->leName->text() );
         ddata->setIP(ui->leIp->text() );
         ddata->setPort(ui->lePort->text().toInt() );
@@ -57,10 +58,17 @@ void DeviceDialog::on_pb_confirm_clicked()
 
         ddata->setPasswd(ui->lePwd->text() );
         ddata->getChannelData().clear();
+
         emit altDevice(ddata);
     }
     else if(t == ADD)
     {
+        if(checklist.indexOf(ui->leIp->text())!=-1)
+        {
+            QMessageBox::information(this, "info", ui->leIp->text()+" already in devices list");
+            return;
+        }
+
         ddata = new DeviceData;
         ddata->setDeviceName(ui->leName->text() );
         ddata->setIP(ui->leIp->text() );
