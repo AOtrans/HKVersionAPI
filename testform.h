@@ -33,6 +33,7 @@ public:
     void showVideo(cv::Mat img, ChannelData *cdata);//feed a new img
     void initLeftTree();
     void initRightTree();
+    const QStringList& getCheckList();
 
     void add2GridLayout(DisplayFrame *);
 
