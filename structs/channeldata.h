@@ -79,6 +79,8 @@ public:
     void increaseImgNO();
     void resetImgNO();
 
+    void reset();
+
     void startLS();
     void stopLS();
     DisplayFrame *getFrame() const;

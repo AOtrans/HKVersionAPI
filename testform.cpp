@@ -938,17 +938,12 @@ void TestForm::startRealPlay(ChannelData *cdata, QStandardItem *item)
 void TestForm::stopRealPlay(ChannelData *cdata, QStandardItem *item)
 {
     cdata->stopLS();
+
     NET_DVR_StopRealPlay(cdata->getRealhandle());
+    PlayM4_FreePort(cdata->getDecodePort());
     item->setIcon(QIcon(CAMERAL_ICON));
 
-    PlayM4_FreePort(cdata->getDecodePort());
-    cdata->setDecodePort(-1);
-    cdata->setRealhandle(-1);
-
-    cdata->isPlaying = false;
-
     DisplayFrame *frame = cdata->frame;
-    cdata->frame = NULL;
 
     if(!frame)
     {
@@ -965,6 +960,8 @@ void TestForm::stopRealPlay(ChannelData *cdata, QStandardItem *item)
     }
 
     sortFrames();
+
+    cdata->reset();
 }
 
 DisplayFrame *TestForm::getFreeFrame()
