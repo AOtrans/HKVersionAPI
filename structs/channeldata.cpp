@@ -404,6 +404,16 @@ void ChannelData::resetImgNO()
     imageNO = 0;
 }
 
+void ChannelData::reset()
+{
+    imageNO = 0;
+    m_irealhandle = -1;
+    decodePort = -1;
+    isPlaying = false;
+    frame = NULL;
+    imageQueue.clear();
+}
+
 void ChannelData::startLS()
 {
     st->start();
