@@ -3,11 +3,14 @@
 #include <QDebug>
 #include <QMessageBox>
 
-DeviceDialog::DeviceDialog(DeviceData *ddata, TYPE t, const QStringList& checklist, QWidget *parent) :
+
+DeviceDialog::DeviceDialog(DeviceData *ddata, TYPE t, QStringList checklist, QString title, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DeviceDialog)
 {
     ui->setupUi(this);
+
+    this->setWindowTitle(title);
     this->ddata = ddata;
     this->t = t;
     this->checklist = checklist;
