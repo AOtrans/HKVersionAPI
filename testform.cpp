@@ -32,7 +32,8 @@ TestForm::TestForm(int argc, char *argv[], int w, int h, QWidget *parent) :
     bar.move((w-bar.width()/2)/2, (h-bar.height()/2)/2);
     bar.show();
 
-    bar.setValue(1);
+    qApp->processEvents();
+    bar.setValue(25);
     qApp->processEvents();
 
     //initialize python env
@@ -228,7 +229,7 @@ void TestForm::initRightTree()
     connect(ui->rightTreeView_2, SIGNAL(collapsed(QModelIndex)), this, SLOT(expandTreeClicked(QModelIndex)));
 }
 
-const QStringList &TestForm::getCheckList()
+QStringList TestForm::getCheckList()
 {
     QStringList ls;
 
@@ -736,7 +737,7 @@ void TestForm::onLeftTreeRightClicked(QPoint point)
 
 void TestForm::showAddDialog(bool)
 {
-    DeviceDialog *dialog = new DeviceDialog(NULL, ADD, getCheckList(), this);
+    DeviceDialog *dialog = new DeviceDialog(NULL, ADD, getCheckList(), "add device", this);
     connect(dialog, SIGNAL(addDevice(DeviceData*)), this, SLOT(addDevice(DeviceData*)));
     dialog->exec();
 }
@@ -744,10 +745,12 @@ void TestForm::showAddDialog(bool)
 void TestForm::showAltDialog(bool)
 {
     if(m_deviceList[m_currentTreeItem->getMapId()].isPlaying())
+    {
         QMessageBox::information(this, "infomation", "please close device first");
         return;
+    }
 
-    DeviceDialog *dialog = new DeviceDialog(&m_deviceList[m_currentTreeItem->getMapId()], ALT, getCheckList(), this);
+    DeviceDialog *dialog = new DeviceDialog(&m_deviceList[m_currentTreeItem->getMapId()], ALT, getCheckList(), "add device", this);
     connect(dialog, SIGNAL(altDevice(DeviceData*)), this, SLOT(altDevice(DeviceData*)));
     dialog->exec();
 }
@@ -757,8 +760,10 @@ void TestForm::deleteDevice(bool)
     if(QMessageBox::information(this, "infomation", "confirm to remove?", QMessageBox::Cancel, QMessageBox::Ok) == QMessageBox::Ok)
     {
         if(m_deviceList[m_currentTreeItem->getMapId()].isPlaying())
+        {
             QMessageBox::information(this, "infomation", "please close device first");
             return;
+        }
 
         m_deviceList.remove(m_currentTreeItem->getMapId());
         m_leftTreeModel->removeRow(m_currentTreeItem->row(), m_currentTreeItem->parent()->index());

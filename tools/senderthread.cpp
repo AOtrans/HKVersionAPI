@@ -61,7 +61,7 @@ void SenderThread::run()
             if(ret)
             {
                 QString json = QString(PyString_AsString(ret));
-                qDebug() << json;
+                //qDebug() << json;
                 //cvt json to object
                 QList<BBox> &&bboxes = json2obj(json);
                 cdata->getFrame()->setBboxes(bboxes);

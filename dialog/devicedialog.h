@@ -15,7 +15,7 @@ class DeviceDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit DeviceDialog(DeviceData *ddata, TYPE t, const QStringList &checklist, QWidget *parent = 0);
+    explicit DeviceDialog(DeviceData *ddata, TYPE t, QStringList checklist, QString title, QWidget *parent = 0);
     ~DeviceDialog();
 
     void initLe();
