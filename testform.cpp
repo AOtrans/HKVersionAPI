@@ -855,13 +855,14 @@ void TestForm::onLeftTreeDoubleClicked(const QModelIndex& index)
 
 void TestForm::onRightTreeDoubleClicked(const QModelIndex& index)
 {
+    QTreeView *view = (QTreeView*)sender();
     QStandardItemModel* model = (QStandardItemModel *)index.model();
     //locate current clicked item
     MyRightTreeItem *item = (MyRightTreeItem*)model->itemFromIndex(index);
 
     if(item->itemType() == rGIF1 || item->itemType() == rGIF2 || item->itemType() == rGIF3)
     {
-        GifDialog *d = new GifDialog(item->parent()->parent()->index().data().toString(), item->index().data().toString(), item->bindData(), this, item);
+        GifDialog *d = new GifDialog(item->parent()->parent()->index().data().toString(), item->index().data().toString(), item->bindData(), this, item, view);
         d->show();
     }
 }
