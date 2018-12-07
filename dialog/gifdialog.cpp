@@ -50,7 +50,7 @@ void GifDialog::on_pbConfirm_clicked()
     file.rename(filepath.replace(NEW_RECORD, WATCHED));
     trigger->setIcon(QIcon());
     trigger->setBindData(filepath.replace(NEW_RECORD, WATCHED));
-    this->close();
+    //this->close();
 }
 
 void GifDialog::on_pbNext_clicked()
