@@ -43,7 +43,22 @@ SOURCES += main.cpp \
     dialog/displayframe.cpp \
     dialog/gifdialog.cpp \
     tree/mylefttreeitem.cpp \
-    tree/myrighttreeitem.cpp
+    tree/myrighttreeitem.cpp \
+    tfModelClient/model.grpc.pb.cc \
+    tfModelClient/model.pb.cc \
+    tfModelClient/predict.grpc.pb.cc \
+    tfModelClient/predict.pb.cc \
+    tfModelClient/prediction_service.grpc.pb.cc \
+    tfModelClient/prediction_service.pb.cc \
+    tfModelClient/resource_handle.grpc.pb.cc \
+    tfModelClient/resource_handle.pb.cc \
+    tfModelClient/tensor_shape.grpc.pb.cc \
+    tfModelClient/tensor_shape.pb.cc \
+    tfModelClient/tensor.grpc.pb.cc \
+    tfModelClient/tensor.pb.cc \
+    tfModelClient/tfserverclient.cpp \
+    tfModelClient/types.grpc.pb.cc \
+    tfModelClient/types.pb.cc
 
 HEADERS  += \
     common.h \
@@ -64,15 +79,30 @@ HEADERS  += \
     dialog/displayframe.h \
     dialog/gifdialog.h \
     tree/mylefttreeitem.h \
-    tree/myrighttreeitem.h
+    tree/myrighttreeitem.h \
+    tfModelClient/model.grpc.pb.h \
+    tfModelClient/model.pb.h \
+    tfModelClient/predict.grpc.pb.h \
+    tfModelClient/predict.pb.h \
+    tfModelClient/prediction_service.grpc.pb.h \
+    tfModelClient/prediction_service.pb.h \
+    tfModelClient/resource_handle.grpc.pb.h \
+    tfModelClient/resource_handle.pb.h \
+    tfModelClient/tensor_shape.grpc.pb.h \
+    tfModelClient/tensor_shape.pb.h \
+    tfModelClient/tensor.grpc.pb.h \
+    tfModelClient/tensor.pb.h \
+    tfModelClient/tfserverclient.h \
+    tfModelClient/types.grpc.pb.h \
+    tfModelClient/types.pb.h
 
 FORMS    += \
     testform.ui \
     dialog/devicedialog.ui \
     dialog/gifdialog.ui
 
-LIBS += -L/home/zg/CH_HCNetSDK_V5.3.5.2_build20171124_Linux64/QtDemo/Linux64/lib -lhcnetsdk -lPlayCtrl -lAudioRender -lSuperRender -lhpr -lHCCore
-LIBS += -lopencv_core \
+LIBS += -L/home/sw/Work/QtProject/build-HKVision-Desktop_Qt_5_7_1_GCC_64bit-Debug/ -lhcnetsdk -lPlayCtrl -lAudioRender -lSuperRender -lhpr -lHCCore
+LIBS += -L/usr/local/lib/ -lopencv_core \
 -lopencv_imgproc \
 -lopencv_highgui \
 -lopencv_ml \
@@ -90,5 +120,7 @@ INCLUDEPATH +=  /usr/include/python2.7\
 
 LIBS += -L/usr/lib/python2.7/config-x86_64-linux-gnu -L/usr/lib -lpython2.7\
         -lpthread -ldl  -lutil -lm  -Xlinker -export-dynamic -Wl,-O1 -Wl,-Bsymbolic-functions
+
+LIBS += -lprotobuf -pthread -lgrpc++ -lgrpc -Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed -ldl
 
 DISTFILES +=

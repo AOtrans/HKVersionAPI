@@ -902,6 +902,8 @@ void TestForm::startRealPlay(ChannelData *cdata, QStandardItem *item)
         cdata->frame = NULL;
         cdata->isPlaying = false;
         QMessageBox::information(this, tr("NET_DVR_RealPlay error"), tr("SDK_LASTERROR=%1").arg(NET_DVR_GetLastError()));
+
+        return;
     }
     else
     {
@@ -951,21 +953,18 @@ void TestForm::stopRealPlay(ChannelData *cdata, QStandardItem *item)
 
     DisplayFrame *frame = cdata->frame;
 
-    if(!frame)
+    if(frame != NULL)
     {
-        qDebug() << "error pframe NULL";
-        return;
+        frame->reset();
+
+        if(!noMoreFramePlay())
+        {
+            ui->gridLayout->removeWidget(frame);
+            frame->hide();
+        }
+
+        sortFrames();
     }
-
-    frame->reset();
-
-    if(!noMoreFramePlay())
-    {
-        ui->gridLayout->removeWidget(frame);
-        frame->hide();
-    }
-
-    sortFrames();
 
     cdata->reset();
 }

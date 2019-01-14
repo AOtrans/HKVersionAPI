@@ -355,7 +355,8 @@ void CALLBACK DecCBFun(int lPort,char * pBuf,int nSize,FRAME_INFO * pFrameInfo, 
             cdata->appendImage(img);
 
         //display frame
-        form->showVideo(img.clone(), cdata);
+        if(cdata->getFrame() != NULL)
+            form->showVideo(img.clone(), cdata);
 //        showReal(img, dwUser);
 
 //        AVFrame *pict = buf2Frame((uchar*)pBuf, width, height);

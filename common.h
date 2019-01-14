@@ -19,25 +19,25 @@
 #else
 #define DBG(a, b) 
 #endif
-const char* const PY_ROOT_PATH = "/home/zg/yaochang";
-const char* const SINGAL_LOCKER_PATH = "/home/zg/camera_monitor/Settings/singal.lock";
+const char* const PY_ROOT_PATH = "/home/sw/Work/tf/yaochang";
+const char* const SINGAL_LOCKER_PATH = "/home/sw/Work/QtProject/build-HKVision-Desktop_Qt_5_7_1_GCC_64bit-Debug/Settings/singal.lock";
 
 const char* const NEW_RECORD = "newrecord";
 const char* const WATCHED = "watched";
 
-const char* const XML_PATH = "/home/zg/camera_monitor/Settings/devices.xml";
-const char* const PATH_PREFIX = "/home/zg/1T/gifs";       //"/home/zg/yaochang/gifs";
-const char* const WARNING_ICON_1 = "/home/zg/camera_monitor/Settings/warning_1.png";
-const char* const WARNING_ICON_2 = "/home/zg/camera_monitor/Settings/warning_2.png";
+const char* const XML_PATH = "/home/sw/Work/QtProject/HKVision/Settings/devices.xml";
+const char* const PATH_PREFIX = "/home/sw/data/gifs";       //"/home/zg/yaochang/gifs";
+const char* const WARNING_ICON_1 = "/home/sw/Work/QtProject/build-HKVision-Desktop_Qt_5_7_1_GCC_64bit-Debug/Settings/warning_1.png";
+const char* const WARNING_ICON_2 = "/home/sw/Work/QtProject/build-HKVision-Desktop_Qt_5_7_1_GCC_64bit-Debug/Settings/warning_2.png";
 
-const char* const DEVICE_ICON = "/home/zg/camera_monitor/Settings/device.png";
-const char* const CAMERAL_ICON = "/home/zg/camera_monitor/Settings/cameral.png";
-const char* const CAMERAL_PLAYING_ICON = "/home/zg/camera_monitor/Settings/cameral_playing.png";
+const char* const DEVICE_ICON = "/home/sw/Work/QtProject/build-HKVision-Desktop_Qt_5_7_1_GCC_64bit-Debug/Settings/device.png";
+const char* const CAMERAL_ICON = "/home/sw/Work/QtProject/build-HKVision-Desktop_Qt_5_7_1_GCC_64bit-Debug/Settings/cameral.png";
+const char* const CAMERAL_PLAYING_ICON = "/home/zg/camera_monitor/Settings/Settings/cameral_playing.png";
 
-const char* const DATE_ICON = "/home/zg/camera_monitor/Settings/calendar.png";
+const char* const DATE_ICON = "/home/sw/Work/QtProject/build-HKVision-Desktop_Qt_5_7_1_GCC_64bit-Debug/Settings/calendar.png";
 
-const char* const RIGHT_ICON = "/home/zg/camera_monitor/Settings/right.png";
-const char* const LEFT_ICON = "/home/zg/camera_monitor/Settings/left.png";
+const char* const RIGHT_ICON = "/home/sw/Work/QtProject/build-HKVision-Desktop_Qt_5_7_1_GCC_64bit-Debug/Settings/right.png";
+const char* const LEFT_ICON = "/home/sw/Work/QtProject/build-HKVision-Desktop_Qt_5_7_1_GCC_64bit-Debug/Settings/left.png";
 
 const int FRAME_ROW_COUNT = 2;
 const int FRAME_COL_COUNT = 2;
