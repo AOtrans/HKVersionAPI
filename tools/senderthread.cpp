@@ -1,16 +1,14 @@
 #include "senderthread.h"
-#include "pyloader.h"
 #include <QDebug>
 #include <QDateTime>
 #include "common.h"
 #include <QDir>
 
-extern PYLoader py_loader;
-
 SenderThread::SenderThread(ChannelData *cdata, QObject *parent)
     :QThread(parent)
 {
     this->cdata = cdata;
+    predictor = new GrpcPredictor(this);
     connect(this, SIGNAL(addRow(QStringList)), parent, SLOT(addRow(QStringList)) );
 }
 
@@ -28,19 +26,9 @@ void SenderThread::run()
         //if has 16 imgs
         if(cdata->checkQueueMax())
         {
-#ifdef THREAD_ABLE
-            //make sure get GIL before use python
-            PyEnsureGIL gil;
-#endif
             qDebug() << "currentThread:" << QThread::currentThread();
-            qDebug() << "---------------------------------------maxQueue begin making packge";
-            PyObject *param = cdata->makeImagePackge();
-
-            if(!param)
-            {
-                qDebug() << "------------------------------------------fail to alloc pylist";
-                continue;
-            }
+            qDebug() << "---------------------------------------maxQueue begin predict";
+            QQueue<cv::Mat> param = cdata->getImageQueue();
 
             qDebug() << "--------------------------------------- have 16 images and send" ;
 
@@ -51,37 +39,19 @@ void SenderThread::run()
             if(!dir.exists())
                 dir.mkpath(save_path);
 
-            QString cameralinfo = save_path + "," + QString::number(QDateTime::currentDateTime().toTime_t());
+            QString param2 = save_path + "," + QString::number(QDateTime::currentDateTime().toTime_t());
 
-            PyObject *param2 = Py_BuildValue("s", cameralinfo.toStdString().c_str());
+            QList<BBox> &&bboxes = predictor->predict(param, param2);
+            cdata->getFrame()->setBboxes(bboxes);
 
-            //call py method
-            PyObject *ret = py_loader.callPyMethod(param, param2);
-
-            if(ret)
+            QStringList filePaths;
+            for(int i =0; i < bboxes.size(); i++)
             {
-                QString json = QString(PyString_AsString(ret));
-                //qDebug() << json;
-                //cvt json to object
-                QList<BBox> &&bboxes = json2obj(json);
-                cdata->getFrame()->setBboxes(bboxes);
-
-                QStringList filePaths;
-                for(int i =0; i < bboxes.size(); i++)
-                {
-                    if(bboxes.at(i).savePath != "None")
-                        filePaths << bboxes.at(i).savePath;
-                }
-
-                emit addRow(filePaths);
-                Py_DECREF(ret);
+                if(bboxes.at(i).savePath != "None")
+                    filePaths << bboxes.at(i).savePath;
             }
 
-            if(param)
-                Py_DECREF(param);
-            if(param2)
-                Py_DECREF(param2);
-
+            emit addRow(filePaths);
         }
         else
         {

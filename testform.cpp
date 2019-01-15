@@ -7,14 +7,12 @@
 #include <QMenu>
 #include <QUuid>
 #include <QProgressBar>
-#include "tools/pyloader.h"
 #include "dialog/gifdialog.h"
 #include <QDir>
 #include <QFileInfo>
 #include <QHeaderView>
 #include <QFileInfoList>
 #include <QDate>
-extern PYLoader py_loader;
 
 TestForm::TestForm(int argc, char *argv[], int w, int h, QWidget *parent) :
     QWidget(parent),
@@ -34,15 +32,6 @@ TestForm::TestForm(int argc, char *argv[], int w, int h, QWidget *parent) :
 
     qApp->processEvents();
     bar.setValue(25);
-    qApp->processEvents();
-
-    //initialize python env
-    if(!py_loader.initPY(argc, argv))
-    {
-        QMessageBox::warning(this, "error", "load PY func failed");
-    }
-
-    bar.setValue(50);
     qApp->processEvents();
 
     //create a defalut frame to show on main widget
@@ -79,7 +68,6 @@ TestForm::~TestForm()
 
     logoutAllDevices();
     NET_DVR_Cleanup();
-    py_loader.deinitPY();
 }
 
 //display singal image

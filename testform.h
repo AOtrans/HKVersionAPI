@@ -8,7 +8,6 @@
 #include "tree/myrighttreeitem.h"
 #include "dialog/devicedialog.h"
 #include "dialog/displayframe.h"
-#include "tools/pyloader.h"
 #include "common.h"
 
 class DeviceData;

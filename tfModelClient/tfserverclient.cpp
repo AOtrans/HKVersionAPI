@@ -1,6 +1,10 @@
 #include "tfserverclient.h"
 #include <math.h>
-std::__cxx11::string TFServerClient::callPredict(const std::__cxx11::string &model_name, const std::__cxx11::string &model_signature_name, QList<QList<cv::Mat> > &batch_inputs)
+
+bool TFServerClient::callPredict(const std::__cxx11::string &model_name,
+                                                 const std::__cxx11::string &model_signature_name,
+                                                 QVector<QVector<cv::Mat> > &batch_inputs,
+                                                 QVector<QVector<float> > &predict_outputs)
 {
     PredictRequest predictRequest;
     PredictResponse response;
@@ -22,9 +26,9 @@ std::__cxx11::string TFServerClient::callPredict(const std::__cxx11::string &mod
 
     if(model_name == "mnet")
     {
-        for(int batch = 0; batch < batch_inputs.size(); batch++)
+        for(int batch = 0; batch < batch_inputs.at(0).size(); batch++)
         {
-            cv::Mat m = batch_inputs.at(batch).at(0);
+            cv::Mat m = batch_inputs.at(0).at(batch).clone();
             cv::cvtColor(m, m,CV_BGR2RGB);
             cv::resize(m, m, cv::Size(224, 224));
 
@@ -37,7 +41,7 @@ std::__cxx11::string TFServerClient::callPredict(const std::__cxx11::string &mod
 
         }
 
-        proto.mutable_tensor_shape()->add_dim()->set_size(batch_inputs.size());
+        proto.mutable_tensor_shape()->add_dim()->set_size(batch_inputs.at(0).size());
         proto.mutable_tensor_shape()->add_dim()->set_size(224);
         proto.mutable_tensor_shape()->add_dim()->set_size(224);
         proto.mutable_tensor_shape()->add_dim()->set_size(3);
@@ -46,7 +50,7 @@ std::__cxx11::string TFServerClient::callPredict(const std::__cxx11::string &mod
     {
         for(int batch = 0; batch < batch_inputs.size(); batch++)
         {
-            const QList<cv::Mat> &singal_batch = batch_inputs.at(batch);
+            const QVector<cv::Mat> &singal_batch = batch_inputs.at(batch);
 
             if(singal_batch.size()!=16)
             {
@@ -55,7 +59,7 @@ std::__cxx11::string TFServerClient::callPredict(const std::__cxx11::string &mod
 
             for(int time_step = 0; time_step < 16 ; time_step ++)
             {
-                cv::Mat m = singal_batch.at(time_step);
+                cv::Mat m = singal_batch.at(time_step).clone();
                 cv::cvtColor(m,m,CV_BGR2RGB);
 
                 float height = m.rows;
@@ -101,7 +105,7 @@ std::__cxx11::string TFServerClient::callPredict(const std::__cxx11::string &mod
     }
     else if(model_name == "yolov3")
     {
-        cv::Mat m = batch_inputs.at(0).at(0);
+        cv::Mat m = batch_inputs.at(0).at(0).clone();
         cv::cvtColor(m,m,CV_BGR2RGB);
 
         float shape0 = m.rows;
@@ -150,9 +154,11 @@ std::__cxx11::string TFServerClient::callPredict(const std::__cxx11::string &mod
             tensorflow::TensorProto& result_tensor_proto = map_outputs["scores"];
             std::cout << "scores" << std::endl;
             for (int i = 0; i < result_tensor_proto.float_val_size(); ++i) {
-                float val = result_tensor_proto.float_val(i);
-                std::cout << "probability of " << i%(result_tensor_proto.float_val_size() / batch_inputs.size()) << " is " << val << std::endl;
+                if(i%2 == 0)
+                    predict_outputs.append(QVector<float>());
 
+                float val = result_tensor_proto.float_val(i);
+                predict_outputs.last().append(val);
             }
         }
         else if(model_name == "3daction")
@@ -160,46 +166,50 @@ std::__cxx11::string TFServerClient::callPredict(const std::__cxx11::string &mod
             tensorflow::TensorProto& result_tensor_proto = map_outputs["logit"];
             std::cout << "3daction" << std::endl;
             for (int i = 0; i < result_tensor_proto.float_val_size(); ++i) {
-                float val = result_tensor_proto.float_val(i);
-                std::cout << "probability of " << i%(result_tensor_proto.float_val_size() / batch_inputs.size()) << " is " << val << std::endl;
+                if(i%3 == 0)
+                    predict_outputs.append(QVector<float>());
 
+                float val = result_tensor_proto.float_val(i);
+                predict_outputs.last().append(val);
             }
         }
         else if(model_name == "yolov3")
         {
-            tensorflow::TensorProto& result_tensor_proto_b = map_outputs["boxes"];
+            tensorflow::TensorProto& result_tensor_proto = map_outputs["boxes"];
             std::cout << "boxes" << std::endl;
-            for (int i = 0; i < result_tensor_proto_b.float_val_size(); ++i) {
-                float val = result_tensor_proto_b.float_val(i);
-                std::cout << "probability of " << i%4 << " is " << val << std::endl;
+            for (int i = 0; i < result_tensor_proto.float_val_size(); ++i) {
+                if(i%4 == 0)
+                    predict_outputs.append(QVector<float>());
 
+                float val = result_tensor_proto.float_val(i);
+                predict_outputs.last().append(val);
             }
 
-            tensorflow::TensorProto& result_tensor_proto_s = map_outputs["scores"];
-            std::cout << "scores" << std::endl;
-            for (int i = 0; i < result_tensor_proto_s.float_val_size(); ++i) {
-                float val = result_tensor_proto_s.float_val(i);
-                std::cout << "probability of " << i << " is " << val << std::endl;
+//            tensorflow::TensorProto& result_tensor_proto_s = map_outputs["scores"];
+//            std::cout << "scores" << std::endl;
+//            for (int i = 0; i < result_tensor_proto_s.float_val_size(); ++i) {
+//                float val = result_tensor_proto_s.float_val(i);
+//                std::cout << "probability of " << i << " is " << val << std::endl;
 
-            }
+//            }
 
-            tensorflow::TensorProto& result_tensor_proto_c = map_outputs["classes"];
-            std::cout << "classes" << std::endl;
-            for (int i = 0; i < result_tensor_proto_c.int_val_size(); ++i) {
-                int val = result_tensor_proto_c.int_val(i);
-                std::cout << "probability of " << i << " is " << val << std::endl;
+//            tensorflow::TensorProto& result_tensor_proto_c = map_outputs["classes"];
+//            std::cout << "classes" << std::endl;
+//            for (int i = 0; i < result_tensor_proto_c.int_val_size(); ++i) {
+//                int val = result_tensor_proto_c.int_val(i);
+//                std::cout << "probability of " << i << " is " << val << std::endl;
 
-            }
+//            }
         }
         else
         {
 
         }
 
-        return "Done.";
+        return true;
     } else {
         std::cout << "gRPC call return code: " << status.error_code() << ": "
                   << status.error_message() << std::endl;
-        return "gRPC failed.";
+        return false;
     }
 }

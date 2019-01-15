@@ -38,8 +38,6 @@ SOURCES += main.cpp \
     tools/commonfuncs.cpp \
     dialog/devicedialog.cpp \
     tools/senderthread.cpp \
-    tools/conversion.cpp \
-    tools/pyloader.cpp \
     dialog/displayframe.cpp \
     dialog/gifdialog.cpp \
     tree/mylefttreeitem.cpp \
@@ -58,7 +56,8 @@ SOURCES += main.cpp \
     tfModelClient/tensor.pb.cc \
     tfModelClient/tfserverclient.cpp \
     tfModelClient/types.grpc.pb.cc \
-    tfModelClient/types.pb.cc
+    tfModelClient/types.pb.cc \
+    tools/grpcpredictor.cpp
 
 HEADERS  += \
     common.h \
@@ -74,8 +73,6 @@ HEADERS  += \
     tools/commonfuncs.h \
     dialog/devicedialog.h \
     tools/senderthread.h \
-    tools/conversion.h \
-    tools/pyloader.h \
     dialog/displayframe.h \
     dialog/gifdialog.h \
     tree/mylefttreeitem.h \
@@ -94,7 +91,8 @@ HEADERS  += \
     tfModelClient/tensor.pb.h \
     tfModelClient/tfserverclient.h \
     tfModelClient/types.grpc.pb.h \
-    tfModelClient/types.pb.h
+    tfModelClient/types.pb.h \
+    tools/grpcpredictor.h
 
 FORMS    += \
     testform.ui \
@@ -112,14 +110,6 @@ LIBS += -L/usr/local/lib/ -lopencv_core \
 -lopencv_contrib \
 -lopencv_legacy \
 -lopencv_flann
-
-INCLUDEPATH +=  /usr/include/python2.7\
-                /usr/include/x86_64-linux-gnu/python2.7\
-                /usr/local/lib/python2.7/dist-packages/numpy/core/include\
-                -fno-strict-aliasing -Wdate-time -D_FORTIFY_SOURCE=2 -g -fstack-protector-strong -Wformat -Werror=format-security  -DNDEBUG -g -fwrapv -O2 -Wall -Wstrict-prototypes
-
-LIBS += -L/usr/lib/python2.7/config-x86_64-linux-gnu -L/usr/lib -lpython2.7\
-        -lpthread -ldl  -lutil -lm  -Xlinker -export-dynamic -Wl,-O1 -Wl,-Bsymbolic-functions
 
 LIBS += -lprotobuf -pthread -lgrpc++ -lgrpc -Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed -ldl
 

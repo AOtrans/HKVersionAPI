@@ -39,6 +39,4 @@ void CALLBACK MessCallBack_V30(LONG lCommand, NET_DVR_ALARMER *pAlarmer, char *p
 void CALLBACK ExceptionCallBack(DWORD dwType, LONG lUserID, LONG lHandle, void *pUser);
 
 bool sdkInit(QWidget *);
-
-QList<BBox> json2obj(QString json);
 #endif // COMMONFUNCS_H

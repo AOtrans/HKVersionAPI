@@ -16,7 +16,6 @@
 #include <QQueue>
 #include <QMutex>
 #include "tools/senderthread.h"
-#include "tools/conversion.h"
 #include "dialog/displayframe.h"
 
 class SenderThread;
@@ -72,7 +71,6 @@ public:
     DeviceData *getParentDevice() const;
     void setParentDevice(DeviceData *value);
 
-    PyObject* makeImagePackge();
     void appendImage(cv::Mat image);
 
     int getImageNO();

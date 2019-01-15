@@ -13,7 +13,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/ml/ml.hpp>
-#include <QMap>
+#include <QVector>
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -30,9 +30,10 @@ public:
     TFServerClient(std::shared_ptr<Channel> channel)
         : stub_(PredictionService::NewStub(channel)) {}
 
-    std::string callPredict(const std::string& model_name,
+    bool callPredict(const std::string& model_name,
                             const std::string& model_signature_name,
-                            QList<QList<cv::Mat> >& batch_inputs);
+                            QVector<QVector<cv::Mat> >& batch_inputs,
+                            QVector<QVector<float> > &predict_outputs);
 
 private:
     std::unique_ptr<PredictionService::Stub> stub_;

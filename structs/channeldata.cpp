@@ -350,30 +350,6 @@ void ChannelData::setParentDevice(DeviceData *value)
     parentDevice = value;
 }
 
-PyObject* ChannelData::makeImagePackge()
-{
-    queueMtx->lock();
-
-    PyObject* tp = PyList_New(MAX_QUEUE);
-    NDArrayConverter cvt;
-    for(int i = 0;i < MAX_QUEUE; i++)
-    {
-        cv::Mat src = imageQueue.at(i);
-        cv::Mat img(src.rows, src.cols, src.type());
-        //cvt BGR channel to RGB channel
-        cv::cvtColor(src, img, CV_BGR2RGB);
-
-        PyObject *it = cvt.toNDArray(img);
-
-        PyList_SetItem(tp , i, it);
-    }
-
-    imageQueue.clear();
-    queueMtx->unlock();
-    return tp;
-
-}
-
 void ChannelData::appendImage(cv::Mat image)
 {
     queueMtx->lock();
@@ -443,5 +419,9 @@ bool ChannelData::checkQueueMax()
 
 QQueue<cv::Mat> ChannelData::getImageQueue() const
 {
-    return imageQueue;
+    queueMtx->lock();
+    QQueue<cv::Mat> tmp = imageQueue;
+    queueMtx->unlock();
+
+    return tmp;
 }

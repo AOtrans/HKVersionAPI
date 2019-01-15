@@ -1,13 +1,13 @@
 #include "testform.h"
-#include "tools/pyloader.h"
 #include <QtGui>
 #include <QApplication>
 #include <common.h>
 #include <QDesktopWidget>
 #include <QMessageBox>
 #include <QLockFile>
+#include "tfModelClient/tfserverclient.h"
+
 TestForm *form;
-PYLoader py_loader;
 /*******************************************************************
       Function:   main
    Description:   主函数入口

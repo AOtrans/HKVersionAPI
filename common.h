@@ -19,7 +19,6 @@
 #else
 #define DBG(a, b) 
 #endif
-const char* const PY_ROOT_PATH = "/home/sw/Work/tf/yaochang";
 const char* const SINGAL_LOCKER_PATH = "/home/sw/Work/QtProject/build-HKVision-Desktop_Qt_5_7_1_GCC_64bit-Debug/Settings/singal.lock";
 
 const char* const NEW_RECORD = "newrecord";
@@ -45,6 +44,17 @@ const int MAX_DISPLAY_FRAME = FRAME_COL_COUNT * FRAME_ROW_COUNT;
 
 const bool DEBUG_LOG = true;
 const int CONNECT_TIMEOUT = 3000;
+
+const char* const GRPC_SERVER = "192.168.3.235:8500";
+const char* const MOBILENET = "mnet";
+const char* const MOBILENET_SIG = "classify_image";
+const char* const TACTION = "3daction";
+const char* const TACTION_SIG = "predict_image";
+const char* const YOLOV3 = "yolov3";
+const char* const YOLOV3_SIG = "detect_image";
+
+const float TWICECHECK_SCORE_THRESHOLD = 0.2;
+const float IOU_THRESHOLD = 0.8;
 
 #endif
 
