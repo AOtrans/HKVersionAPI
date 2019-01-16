@@ -1,5 +1,6 @@
 #include "grpcpredictor.h"
 #include <QUuid>
+#include "gifsaver.h"
 
 int GrpcPredictor::index = 0;
 
@@ -110,7 +111,6 @@ QList<BBox> GrpcPredictor::predict(QQueue<cv::Mat> &param, QString param2)
         inputs.clear();
         for(int i=0; i<param.size(); i++)
         {
-            qDebug()<< param[i].cols << param[i].rows<< top << left << right-left << bottom-top;
             cv::Rect roi(left, top, right-left, bottom-top);
             inputs.append(param[i](roi));
         }
@@ -118,6 +118,7 @@ QList<BBox> GrpcPredictor::predict(QQueue<cv::Mat> &param, QString param2)
     }
 
     QList<BBox> ret_bboxes;
+    QVector<QVector<float> > new_pre_boxes;
 
     if(boxes.size() != 0)
     {
@@ -128,7 +129,8 @@ QList<BBox> GrpcPredictor::predict(QQueue<cv::Mat> &param, QString param2)
 
         QVector<int> result = argmax(tdaction_classes);
 
-        QStringList fileSavePath;
+        QMap<QString, QVector<cv::Mat>> saveImgs;
+        QStringList filePaths;
         for(int i=0; i<result.size(); i++)
         {
             if(result[i]!=0)
@@ -143,27 +145,33 @@ QList<BBox> GrpcPredictor::predict(QQueue<cv::Mat> &param, QString param2)
 
                 if(twice_check(mnet_classes))
                 {
+                    new_pre_boxes.append(boxes[i]);
                     QString tmpPath = QString("%1/newrecord_%2_%3_%4.gif").arg(savePath).arg(result[i]).arg(timeT).arg(QUuid::createUuid().toString());
                     if(!check_box(boxes[i]))
                     {
-                        fileSavePath.append(tmpPath);
+                        saveImgs.insert(tmpPath, batch_inputs.at(i));
+                        filePaths.append(tmpPath);
                     }
                     else
                     {
-                        fileSavePath.append("None");
+                        filePaths.append("None");
                     }
                 }
                 else
                 {
-                    fileSavePath.append("None");
                     result[i]=0;
+                    filePaths.append("None");
                 }
             }
             else
             {
-                fileSavePath.append("None");
+                filePaths.append("None");
             }
+
         }
+
+        GIFSaver *saver = new GIFSaver(saveImgs);
+        saver->start();
 
         for(int i=0; i<boxes.size(); i++)
         {
@@ -175,11 +183,13 @@ QList<BBox> GrpcPredictor::predict(QQueue<cv::Mat> &param, QString param2)
             box.y2 = boxes[i].at(2);
             box.x2 = boxes[i].at(3);
 
+            box.savePath = filePaths[i];
+
             ret_bboxes.append(box);
         }
     }
 
-    pre_boxes = boxes;
+    pre_boxes = new_pre_boxes;
 
     return ret_bboxes;
 }
@@ -241,7 +251,7 @@ bool GrpcPredictor::check_box(QVector<float> &inputs)
     {
         if(match(inputs, pre_box))
         {
-            qDebug() << "************delete one**************";
+            qDebug() << "************box iou delete one**************";
             return true;
         }
     }

@@ -417,10 +417,11 @@ bool ChannelData::checkQueueMax()
     return imageQueue.size() == MAX_QUEUE;
 }
 
-QQueue<cv::Mat> ChannelData::getImageQueue() const
+QQueue<cv::Mat> ChannelData::getImageQueue()
 {
     queueMtx->lock();
     QQueue<cv::Mat> tmp = imageQueue;
+    imageQueue.clear();
     queueMtx->unlock();
 
     return tmp;

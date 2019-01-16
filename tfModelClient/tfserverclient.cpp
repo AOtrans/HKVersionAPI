@@ -24,7 +24,7 @@ bool TFServerClient::callPredict(const std::__cxx11::string &model_name,
     proto2.set_dtype(tensorflow::DataType::DT_FLOAT);
 
 
-    if(model_name == "mnet")
+    if(model_name == "mnet")//shape [1,batchsize]
     {
         for(int batch = 0; batch < batch_inputs.at(0).size(); batch++)
         {
@@ -46,7 +46,7 @@ bool TFServerClient::callPredict(const std::__cxx11::string &model_name,
         proto.mutable_tensor_shape()->add_dim()->set_size(224);
         proto.mutable_tensor_shape()->add_dim()->set_size(3);
     }
-    else if(model_name == "3daction")
+    else if(model_name == "3daction")//shape [batchsize,16]
     {
         for(int batch = 0; batch < batch_inputs.size(); batch++)
         {
@@ -103,7 +103,7 @@ bool TFServerClient::callPredict(const std::__cxx11::string &model_name,
         proto.mutable_tensor_shape()->add_dim()->set_size(160);
         proto.mutable_tensor_shape()->add_dim()->set_size(3);
     }
-    else if(model_name == "yolov3")
+    else if(model_name == "yolov3")//shape [1,1]
     {
         cv::Mat m = batch_inputs.at(0).at(0).clone();
         cv::cvtColor(m,m,CV_BGR2RGB);
@@ -146,13 +146,13 @@ bool TFServerClient::callPredict(const std::__cxx11::string &model_name,
 
     if (status.ok()) {
         std::cout << "call predict ok" << std::endl;
-        std::cout << "outputs size is " << response.outputs_size() << std::endl;
+        //std::cout << "outputs size is " << response.outputs_size() << std::endl;
         OutMap& map_outputs = *response.mutable_outputs();
 
         if(model_name == "mnet")
         {
             tensorflow::TensorProto& result_tensor_proto = map_outputs["scores"];
-            std::cout << "scores" << std::endl;
+            std::cout << "mnet" << std::endl;
             for (int i = 0; i < result_tensor_proto.float_val_size(); ++i) {
                 if(i%2 == 0)
                     predict_outputs.append(QVector<float>());
@@ -176,7 +176,7 @@ bool TFServerClient::callPredict(const std::__cxx11::string &model_name,
         else if(model_name == "yolov3")
         {
             tensorflow::TensorProto& result_tensor_proto = map_outputs["boxes"];
-            std::cout << "boxes" << std::endl;
+            std::cout << "yolov3" << std::endl;
             for (int i = 0; i < result_tensor_proto.float_val_size(); ++i) {
                 if(i%4 == 0)
                     predict_outputs.append(QVector<float>());

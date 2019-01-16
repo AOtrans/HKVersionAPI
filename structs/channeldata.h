@@ -86,7 +86,7 @@ public:
 
     bool checkQueueMax();
 
-    QQueue<cv::Mat> getImageQueue() const;
+    QQueue<cv::Mat> getImageQueue();
 
 private:
     //通道名称

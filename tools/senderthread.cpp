@@ -27,10 +27,9 @@ void SenderThread::run()
         if(cdata->checkQueueMax())
         {
             qDebug() << "currentThread:" << QThread::currentThread();
-            qDebug() << "---------------------------------------maxQueue begin predict";
             QQueue<cv::Mat> param = cdata->getImageQueue();
 
-            qDebug() << "--------------------------------------- have 16 images and send" ;
+            qDebug() << "--------------------------------------- have 16 images and predict" ;
 
 
             QString save_path = QString(PATH_PREFIX) + "/" + QDate::currentDate().toString("yyyy-MM-dd") + "/" + cdata->getSaveDir();

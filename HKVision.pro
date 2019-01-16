@@ -57,7 +57,8 @@ SOURCES += main.cpp \
     tfModelClient/tfserverclient.cpp \
     tfModelClient/types.grpc.pb.cc \
     tfModelClient/types.pb.cc \
-    tools/grpcpredictor.cpp
+    tools/grpcpredictor.cpp \
+    tools/gifsaver.cpp
 
 HEADERS  += \
     common.h \
@@ -92,7 +93,9 @@ HEADERS  += \
     tfModelClient/tfserverclient.h \
     tfModelClient/types.grpc.pb.h \
     tfModelClient/types.pb.h \
-    tools/grpcpredictor.h
+    tools/grpcpredictor.h \
+    tools/gifmaker.h \
+    tools/gifsaver.h
 
 FORMS    += \
     testform.ui \

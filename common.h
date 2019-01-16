@@ -31,7 +31,7 @@ const char* const WARNING_ICON_2 = "/home/sw/Work/QtProject/build-HKVision-Deskt
 
 const char* const DEVICE_ICON = "/home/sw/Work/QtProject/build-HKVision-Desktop_Qt_5_7_1_GCC_64bit-Debug/Settings/device.png";
 const char* const CAMERAL_ICON = "/home/sw/Work/QtProject/build-HKVision-Desktop_Qt_5_7_1_GCC_64bit-Debug/Settings/cameral.png";
-const char* const CAMERAL_PLAYING_ICON = "/home/zg/camera_monitor/Settings/Settings/cameral_playing.png";
+const char* const CAMERAL_PLAYING_ICON = "/home/sw/Work/QtProject/build-HKVision-Desktop_Qt_5_7_1_GCC_64bit-Debug/Settings/cameral_playing.png";
 
 const char* const DATE_ICON = "/home/sw/Work/QtProject/build-HKVision-Desktop_Qt_5_7_1_GCC_64bit-Debug/Settings/calendar.png";
 
