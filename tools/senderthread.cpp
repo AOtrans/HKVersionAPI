@@ -3,6 +3,7 @@
 #include <QDateTime>
 #include "common.h"
 #include <QDir>
+#include <QTime>
 
 SenderThread::SenderThread(ChannelData *cdata, QObject *parent)
     :QThread(parent)
@@ -39,8 +40,9 @@ void SenderThread::run()
                 dir.mkpath(save_path);
 
             QString param2 = save_path + "," + QString::number(QDateTime::currentDateTime().toTime_t());
-
+            QTime time = QTime::currentTime();
             QList<BBox> &&bboxes = predictor->predict(param, param2);
+            qDebug() <<"cost:"<< time.msecsTo(QTime::currentTime());
             cdata->getFrame()->setBboxes(bboxes);
 
             QStringList filePaths;

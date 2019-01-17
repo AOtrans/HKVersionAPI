@@ -1,6 +1,19 @@
 #include "tfserverclient.h"
 #include <math.h>
 
+void addMat2Bytes(cv::Mat m, tensorflow::TensorProto &proto)
+{
+    std::vector<uchar> buf;
+    cv::imencode(".jpg", m, buf);
+
+    char *str = new char[buf.size()+1];
+    copy(buf.begin(),buf.end(), str);
+    str[buf.size()]=0;
+
+    proto.add_string_val(str, buf.size());
+}
+
+
 bool TFServerClient::callPredict(const std::__cxx11::string &model_name,
                                                  const std::__cxx11::string &model_signature_name,
                                                  QVector<QVector<cv::Mat> > &batch_inputs,
@@ -20,7 +33,7 @@ bool TFServerClient::callPredict(const std::__cxx11::string &model_name,
     tensorflow::TensorProto proto;
     tensorflow::TensorProto proto2;
 
-    proto.set_dtype(tensorflow::DataType::DT_FLOAT);
+    proto.set_dtype(tensorflow::DataType::DT_STRING);
     proto2.set_dtype(tensorflow::DataType::DT_FLOAT);
 
 
@@ -32,19 +45,19 @@ bool TFServerClient::callPredict(const std::__cxx11::string &model_name,
             cv::cvtColor(m, m,CV_BGR2RGB);
             cv::resize(m, m, cv::Size(224, 224));
 
-            int mat_size = m.rows * m.cols * m.channels();
+//            int mat_size = m.rows * m.cols * m.channels();
 
-            for(int i = 0 ;i < mat_size; i++)
-            {
-                proto.add_float_val(float(m.data[i])/127.5 - 1.0);
-            }
+//            for(int i = 0 ;i < mat_size; i++)
+//            {
+            addMat2Bytes(m, proto);
+//            }
 
         }
 
         proto.mutable_tensor_shape()->add_dim()->set_size(batch_inputs.at(0).size());
-        proto.mutable_tensor_shape()->add_dim()->set_size(224);
-        proto.mutable_tensor_shape()->add_dim()->set_size(224);
-        proto.mutable_tensor_shape()->add_dim()->set_size(3);
+//        proto.mutable_tensor_shape()->add_dim()->set_size(224);
+//        proto.mutable_tensor_shape()->add_dim()->set_size(224);
+//        proto.mutable_tensor_shape()->add_dim()->set_size(3);
     }
     else if(model_name == "3daction")//shape [batchsize,16]
     {
@@ -82,26 +95,26 @@ bool TFServerClient::callPredict(const std::__cxx11::string &model_name,
                 cv::Rect roi(crop_x, crop_y, 160, 160);
                 m = m(roi);
 
-                cv::Mat tmp_mean, tmp_std;
-                cv::meanStdDev(m, tmp_mean, tmp_std);
-                float mean_value = tmp_mean.at<double>(0, 0);
-                float std_value = MAX(tmp_std.at<double>(0, 0), 1.0/sqrt(160.0*160.0*3.0));
+//                cv::Mat tmp_mean, tmp_std;
+//                cv::meanStdDev(m, tmp_mean, tmp_std);
+//                float mean_value = tmp_mean.at<double>(0, 0);
+//                float std_value = MAX(tmp_std.at<double>(0, 0), 1.0/sqrt(160.0*160.0*3.0));
 
-                int mat_size = m.rows * m.cols * m.channels();
+//                int mat_size = m.rows * m.cols * m.channels();
 
-                for(int i =0 ;i< mat_size; i++)
-                {
-                    proto.add_float_val((float(m.data[i])-mean_value)/std_value );
-                }
+//                for(int i =0 ;i< mat_size; i++)
+//                {
+                addMat2Bytes(m, proto);
+//                }
             }
 
         }
 
         proto.mutable_tensor_shape()->add_dim()->set_size(batch_inputs.size());
         proto.mutable_tensor_shape()->add_dim()->set_size(16);
-        proto.mutable_tensor_shape()->add_dim()->set_size(160);
-        proto.mutable_tensor_shape()->add_dim()->set_size(160);
-        proto.mutable_tensor_shape()->add_dim()->set_size(3);
+//        proto.mutable_tensor_shape()->add_dim()->set_size(160);
+//        proto.mutable_tensor_shape()->add_dim()->set_size(160);
+//        proto.mutable_tensor_shape()->add_dim()->set_size(3);
     }
     else if(model_name == "yolov3")//shape [1,1]
     {
@@ -122,17 +135,17 @@ bool TFServerClient::callPredict(const std::__cxx11::string &model_name,
         cv::resize(m, m, cv::Size(new_w, new_h),0,0, cv::INTER_CUBIC);
         cv::copyMakeBorder(m, m, (416-new_h)/2, 416-new_h-(416-new_h)/2, (416-new_w)/2, 416-new_w-(416-new_w)/2, cv::BORDER_CONSTANT, cv::Scalar(128));
 
-        int mat_size = m.rows * m.cols * m.channels();
+//        int mat_size = m.rows * m.cols * m.channels();
 
-        for(int i =0 ;i< mat_size; i++)
-        {
-            proto.add_float_val(float(m.data[i])/255.0);
-        }
+//        for(int i =0 ;i< mat_size; i++)
+//        {
+        addMat2Bytes(m, proto);
+//        }
 
         proto.mutable_tensor_shape()->add_dim()->set_size(1);
-        proto.mutable_tensor_shape()->add_dim()->set_size(416);
-        proto.mutable_tensor_shape()->add_dim()->set_size(416);
-        proto.mutable_tensor_shape()->add_dim()->set_size(3);
+//        proto.mutable_tensor_shape()->add_dim()->set_size(416);
+//        proto.mutable_tensor_shape()->add_dim()->set_size(416);
+//        proto.mutable_tensor_shape()->add_dim()->set_size(3);
 
     }
     else
