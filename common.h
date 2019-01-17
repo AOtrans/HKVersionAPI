@@ -38,8 +38,8 @@ const char* const DATE_ICON = "/home/sw/Work/QtProject/build-HKVision-Desktop_Qt
 const char* const RIGHT_ICON = "/home/sw/Work/QtProject/build-HKVision-Desktop_Qt_5_7_1_GCC_64bit-Debug/Settings/right.png";
 const char* const LEFT_ICON = "/home/sw/Work/QtProject/build-HKVision-Desktop_Qt_5_7_1_GCC_64bit-Debug/Settings/left.png";
 
-const int FRAME_ROW_COUNT = 2;
-const int FRAME_COL_COUNT = 2;
+const int FRAME_ROW_COUNT = 4;
+const int FRAME_COL_COUNT = 4;
 const int MAX_DISPLAY_FRAME = FRAME_COL_COUNT * FRAME_ROW_COUNT;
 
 const bool DEBUG_LOG = true;

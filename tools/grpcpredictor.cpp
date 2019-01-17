@@ -8,6 +8,9 @@ GrpcPredictor::GrpcPredictor(QObject *parent):
     QObject(parent)
 {
     index++;
+    grpc::ChannelArguments args;
+    args.SetUserAgentPrefix(std::to_string(index));
+    guide = new TFServerClient(grpc::CreateCustomChannel(GRPC_SERVER, grpc::InsecureChannelCredentials(), args));
 }
 
 QVector<int> GrpcPredictor::argmax(QVector<QVector<float> > &inputs)
@@ -39,10 +42,6 @@ QList<BBox> GrpcPredictor::predict(QQueue<cv::Mat> &param, QString param2)
         return QList<BBox>();
     }
 
-    grpc::ChannelArguments args;
-    args.SetUserAgentPrefix(std::to_string(index));
-    TFServerClient guide(grpc::CreateCustomChannel(GRPC_SERVER, grpc::InsecureChannelCredentials(), args));
-
 
     QStringList frameInfo = param2.split(",");
     QString savePath = frameInfo[0];
@@ -61,7 +60,7 @@ QList<BBox> GrpcPredictor::predict(QQueue<cv::Mat> &param, QString param2)
     inputs.append(detectImage);
     batch_inputs.append(inputs);
 
-    bool flag = guide.callPredict(YOLOV3, YOLOV3_SIG, batch_inputs, boxes);
+    bool flag = guide->callPredict(YOLOV3, YOLOV3_SIG, batch_inputs, boxes);
     batch_inputs.clear();
     inputs.clear();
 
@@ -122,7 +121,7 @@ QList<BBox> GrpcPredictor::predict(QQueue<cv::Mat> &param, QString param2)
 
     if(boxes.size() != 0)
     {
-        bool flag = guide.callPredict(TACTION, TACTION_SIG, batch_inputs, tdaction_classes);
+        bool flag = guide->callPredict(TACTION, TACTION_SIG, batch_inputs, tdaction_classes);
 
         if(!flag)
             return QList<BBox>();
@@ -138,7 +137,7 @@ QList<BBox> GrpcPredictor::predict(QQueue<cv::Mat> &param, QString param2)
                 QVector<QVector<float> > mnet_classes;
                 QVector<QVector<cv::Mat> > tmp_inputs;
                 tmp_inputs.append(batch_inputs.at(i));
-                bool flag = guide.callPredict(MOBILENET, MOBILENET_SIG, tmp_inputs, mnet_classes);
+                bool flag = guide->callPredict(MOBILENET, MOBILENET_SIG, tmp_inputs, mnet_classes);
 
                 if(!flag)
                     return QList<BBox>();
@@ -170,8 +169,12 @@ QList<BBox> GrpcPredictor::predict(QQueue<cv::Mat> &param, QString param2)
 
         }
 
-        GIFSaver *saver = new GIFSaver(saveImgs);
-        saver->start();
+        if(saveImgs.size()!=0)
+        {
+            GIFSaver *saver = new GIFSaver(saveImgs);
+            connect(saver, SIGNAL(finished()),this, SLOT(cleanThread()));
+            saver->start();
+        }
 
         for(int i=0; i<boxes.size(); i++)
         {
@@ -257,4 +260,11 @@ bool GrpcPredictor::check_box(QVector<float> &inputs)
     }
 
     return false;
+}
+
+void GrpcPredictor::cleanThread()
+{
+    GIFSaver *saver = (GIFSaver *)sender();
+    disconnect(saver, SIGNAL(finished()),this, SLOT(cleanThread()));
+    delete saver;
 }

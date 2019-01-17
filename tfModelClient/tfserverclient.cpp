@@ -11,6 +11,8 @@ void addMat2Bytes(cv::Mat m, tensorflow::TensorProto &proto)
     str[buf.size()]=0;
 
     proto.add_string_val(str, buf.size());
+
+    delete str;
 }
 
 

@@ -22,6 +22,9 @@ public:
     static int index;
 private:
     QVector<QVector<float> > pre_boxes;
+    TFServerClient *guide;
+private slots:
+    void cleanThread();
 };
 
 #endif // GRPCPREDICTOR_H

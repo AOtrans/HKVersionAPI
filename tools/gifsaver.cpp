@@ -5,7 +5,11 @@ GIFSaver::GIFSaver(const QMap<QString, QVector<cv::Mat> > &saveImgs, QObject*par
     QThread(parent)
 {
     this->saveImgs = saveImgs;
-    connect(this, SIGNAL(finished()), this, SLOT(deleteLater()));
+}
+
+GIFSaver::~GIFSaver()
+{
+
 }
 
 void GIFSaver::run()

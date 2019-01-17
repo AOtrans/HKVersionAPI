@@ -13,6 +13,7 @@ class GIFSaver : public QThread
     Q_OBJECT
 public:
     GIFSaver(const QMap<QString, QVector<cv::Mat>> &saveImgs, QObject*parent=0);
+    ~GIFSaver();
     virtual void run() override;
 private:
     QMap<QString, QVector<cv::Mat>> saveImgs;
