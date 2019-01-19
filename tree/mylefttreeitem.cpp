@@ -1,5 +1,5 @@
 #include "mylefttreeitem.h"
-
+extern Config* config;
 MyLeftTreeItem::MyLeftTreeItem(QString text, QString id, LeftTreeItemType type, void *bindData, bool editAble)
     :QStandardItem(text)
 {
@@ -10,11 +10,11 @@ MyLeftTreeItem::MyLeftTreeItem(QString text, QString id, LeftTreeItemType type, 
 
     if(type == lDEVICE)
     {
-        this->setIcon(QIcon(DEVICE_ICON));
+        this->setIcon(QIcon(config->DEVICE_ICON));
     }
     else if(type == lCHANNEL)
     {
-        this->setIcon(QIcon(CAMERAL_ICON));
+        this->setIcon(QIcon(config->CAMERAL_ICON));
     }
 }
 

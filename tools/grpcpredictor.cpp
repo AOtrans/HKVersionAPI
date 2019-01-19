@@ -1,7 +1,7 @@
 #include "grpcpredictor.h"
 #include <QUuid>
 #include "gifsaver.h"
-
+extern Config* config;
 int GrpcPredictor::index = 0;
 
 GrpcPredictor::GrpcPredictor(QObject *parent):
@@ -10,7 +10,7 @@ GrpcPredictor::GrpcPredictor(QObject *parent):
     index++;
     grpc::ChannelArguments args;
     args.SetUserAgentPrefix(std::to_string(index));
-    guide = new TFServerClient(grpc::CreateCustomChannel(GRPC_SERVER, grpc::InsecureChannelCredentials(), args));
+    guide = new TFServerClient(grpc::CreateCustomChannel(config->GRPC_SERVER.toStdString(), grpc::InsecureChannelCredentials(), args));
 }
 
 QVector<int> GrpcPredictor::argmax(QVector<QVector<float> > &inputs)
@@ -60,7 +60,7 @@ QList<BBox> GrpcPredictor::predict(QQueue<cv::Mat> &param, QString param2)
     inputs.append(detectImage);
     batch_inputs.append(inputs);
 
-    bool flag = guide->callPredict(YOLOV3, YOLOV3_SIG, batch_inputs, boxes);
+    bool flag = guide->callPredict(config->YOLOV3.toStdString(), config->YOLOV3_SIG.toStdString(), batch_inputs, boxes);
     batch_inputs.clear();
     inputs.clear();
 
@@ -121,7 +121,7 @@ QList<BBox> GrpcPredictor::predict(QQueue<cv::Mat> &param, QString param2)
 
     if(boxes.size() != 0)
     {
-        bool flag = guide->callPredict(TACTION, TACTION_SIG, batch_inputs, tdaction_classes);
+        bool flag = guide->callPredict(config->TACTION.toStdString(), config->TACTION_SIG.toStdString(), batch_inputs, tdaction_classes);
 
         if(!flag)
             return QList<BBox>();
@@ -137,7 +137,7 @@ QList<BBox> GrpcPredictor::predict(QQueue<cv::Mat> &param, QString param2)
                 QVector<QVector<float> > mnet_classes;
                 QVector<QVector<cv::Mat> > tmp_inputs;
                 tmp_inputs.append(batch_inputs.at(i));
-                bool flag = guide->callPredict(MOBILENET, MOBILENET_SIG, tmp_inputs, mnet_classes);
+                bool flag = guide->callPredict(config->MOBILENET.toStdString(), config->MOBILENET_SIG.toStdString(), tmp_inputs, mnet_classes);
 
                 if(!flag)
                     return QList<BBox>();
@@ -208,7 +208,7 @@ bool GrpcPredictor::twice_check(QVector<QVector<float> > &inputs)
 
     sum/=result.size();
 
-    if(sum>TWICECHECK_SCORE_THRESHOLD)
+    if(sum>config->TWICECHECK_SCORE_THRESHOLD)
     {
         qDebug() << "pass twice check";
         return true;
@@ -245,7 +245,7 @@ bool match(QVector<float> box1, QVector<float> box2)
 
     float iou = area / (carea + garea - area);
 
-    return iou>IOU_THRESHOLD;
+    return iou>config->IOU_THRESHOLD;
 }
 
 bool GrpcPredictor::check_box(QVector<float> &inputs)

@@ -10,51 +10,116 @@
 *************************************************************************/
 #ifndef COMMON_H
 #define COMMON_H
-#include <QMessageBox>
+#include<QString>
+#include<QSettings>
+#include<QFile>
+#include<QDebug>
+class Config
+{
+public:
+    Config(QString iniFile){
+        if(!QFile(iniFile).exists())
+        {
+            qDebug() << "missing ini config file";
+            return;
+        }
 
-#define DEBUG 0
-#ifdef DEBUG
-#define DBG(a, b) \
-	(QMessageBox::information(this,tr(a),tr("line=%1").arg(b)))
-#else
-#define DBG(a, b) 
-#endif
-const char* const SINGAL_LOCKER_PATH = "/home/sw/Work/QtProject/build-HKVision-Desktop_Qt_5_7_1_GCC_64bit-Debug/Settings/singal.lock";
+        qDebug() << "load ini CONFIG from" << iniFile;
+        qDebug() << "*********************************************************";
+        QSettings set(iniFile, QSettings::IniFormat);
+        SINGAL_LOCKER_PATH = set.value("CONFIG/SINGAL_LOCKER_PATH").toString();
+        qDebug() << "load SINGAL_LOCKER_PATH:" << SINGAL_LOCKER_PATH;
+        NEW_RECORD = set.value("CONFIG/NEW_RECORD").toString();
+        qDebug() << "load NEW_RECORD:" << NEW_RECORD;
+        WATCHED = set.value("CONFIG/WATCHED").toString();
+        qDebug() << "load WATCHED:" << WATCHED;
+        XML_PATH = set.value("CONFIG/XML_PATH").toString();
+        qDebug() << "load XML_PATH:" << XML_PATH;
+        PATH_PREFIX = set.value("CONFIG/PATH_PREFIX").toString();
+        qDebug() << "load PATH_PREFIX:" << PATH_PREFIX;
+        WARNING_ICON_1 = set.value("CONFIG/WARNING_ICON_1").toString();
+        qDebug() << "load WARNING_ICON_1:" << WARNING_ICON_1;
+        WARNING_ICON_2 = set.value("CONFIG/WARNING_ICON_2").toString();
+        qDebug() << "load WARNING_ICON_2:" << WARNING_ICON_2;
+        DEVICE_ICON = set.value("CONFIG/DEVICE_ICON").toString();
+        qDebug() << "load DEVICE_ICON:" << DEVICE_ICON;
+        CAMERAL_ICON = set.value("CONFIG/CAMERAL_ICON").toString();
+        qDebug() << "load CAMERAL_ICON:" << CAMERAL_ICON;
+        CAMERAL_PLAYING_ICON = set.value("CONFIG/CAMERAL_PLAYING_ICON").toString();
+        qDebug() << "load CAMERAL_PLAYING_ICON:" << CAMERAL_PLAYING_ICON;
+        DATE_ICON = set.value("CONFIG/DATE_ICON").toString();
+        qDebug() << "load DATE_ICON:" << DATE_ICON;
+        RIGHT_ICON = set.value("CONFIG/RIGHT_ICON").toString();
+        qDebug() << "load RIGHT_ICON:" << RIGHT_ICON;
+        LEFT_ICON = set.value("CONFIG/LEFT_ICON").toString();
+        qDebug() << "load LEFT_ICON:" << LEFT_ICON;
+        FRAME_ROW_COUNT = set.value("CONFIG/FRAME_ROW_COUNT").toInt();
+        qDebug() << "load FRAME_ROW_COUNT:" << FRAME_ROW_COUNT;
+        FRAME_COL_COUNT = set.value("CONFIG/FRAME_COL_COUNT").toInt();
+        qDebug() << "load FRAME_COL_COUNT:" << FRAME_COL_COUNT;
+        MAX_DISPLAY_FRAME = FRAME_COL_COUNT * FRAME_ROW_COUNT;
+        DEBUG_LOG = set.value("CONFIG/DEBUG_LOG").toBool();
+        qDebug() << "load DEBUG_LOG:" << DEBUG_LOG;
+        CONNECT_TIMEOUT = set.value("CONFIG/CONNECT_TIMEOUT").toInt();
+        qDebug() << "load CONNECT_TIMEOUT:" << CONNECT_TIMEOUT;
 
-const char* const NEW_RECORD = "newrecord";
-const char* const WATCHED = "watched";
+        GRPC_SERVER = set.value("CONFIG/GRPC_SERVER").toString();
+        qDebug() << "load GRPC_SERVER:" << GRPC_SERVER;
+        MOBILENET = set.value("CONFIG/MOBILENET").toString();
+        qDebug() << "load MOBILENET:" << MOBILENET;
+        MOBILENET_SIG = set.value("CONFIG/MOBILENET_SIG").toString();
+        qDebug() << "load MOBILENET_SIG:" << MOBILENET_SIG;
+        TACTION = set.value("CONFIG/TACTION").toString();
+        qDebug() << "load TACTION:" << TACTION;
+        TACTION_SIG = set.value("CONFIG/TACTION_SIG").toString();
+        qDebug() << "load TACTION_SIG:" << TACTION_SIG;
+        YOLOV3 = set.value("CONFIG/YOLOV3").toString();
+        qDebug() << "load YOLOV3:" << YOLOV3;
+        YOLOV3_SIG = set.value("CONFIG/YOLOV3_SIG").toString();
+        qDebug() << "load YOLOV3_SIG:" << YOLOV3_SIG;
 
-const char* const XML_PATH = "/home/sw/Work/QtProject/HKVision/Settings/devices.xml";
-const char* const PATH_PREFIX = "/home/sw/data/gifs";       //"/home/zg/yaochang/gifs";
-const char* const WARNING_ICON_1 = "/home/sw/Work/QtProject/build-HKVision-Desktop_Qt_5_7_1_GCC_64bit-Debug/Settings/warning_1.png";
-const char* const WARNING_ICON_2 = "/home/sw/Work/QtProject/build-HKVision-Desktop_Qt_5_7_1_GCC_64bit-Debug/Settings/warning_2.png";
+        TWICECHECK_SCORE_THRESHOLD = set.value("CONFIG/TWICECHECK_SCORE_THRESHOLD").toFloat();
+        qDebug() << "load TWICECHECK_SCORE_THRESHOLD:" << TWICECHECK_SCORE_THRESHOLD;
+        IOU_THRESHOLD = set.value("CONFIG/IOU_THRESHOLD").toFloat();
+        qDebug() << "load IOU_THRESHOLD:" << IOU_THRESHOLD;
+        qDebug() << "*********************************************************";
+    }
+    QString SINGAL_LOCKER_PATH;
 
-const char* const DEVICE_ICON = "/home/sw/Work/QtProject/build-HKVision-Desktop_Qt_5_7_1_GCC_64bit-Debug/Settings/device.png";
-const char* const CAMERAL_ICON = "/home/sw/Work/QtProject/build-HKVision-Desktop_Qt_5_7_1_GCC_64bit-Debug/Settings/cameral.png";
-const char* const CAMERAL_PLAYING_ICON = "/home/sw/Work/QtProject/build-HKVision-Desktop_Qt_5_7_1_GCC_64bit-Debug/Settings/cameral_playing.png";
+    QString NEW_RECORD;
+    QString WATCHED;
 
-const char* const DATE_ICON = "/home/sw/Work/QtProject/build-HKVision-Desktop_Qt_5_7_1_GCC_64bit-Debug/Settings/calendar.png";
+    QString XML_PATH;
+    QString PATH_PREFIX;
+    QString WARNING_ICON_1;
+    QString WARNING_ICON_2;
 
-const char* const RIGHT_ICON = "/home/sw/Work/QtProject/build-HKVision-Desktop_Qt_5_7_1_GCC_64bit-Debug/Settings/right.png";
-const char* const LEFT_ICON = "/home/sw/Work/QtProject/build-HKVision-Desktop_Qt_5_7_1_GCC_64bit-Debug/Settings/left.png";
+    QString DEVICE_ICON;
+    QString CAMERAL_ICON;
+    QString CAMERAL_PLAYING_ICON;
 
-const int FRAME_ROW_COUNT = 4;
-const int FRAME_COL_COUNT = 4;
-const int MAX_DISPLAY_FRAME = FRAME_COL_COUNT * FRAME_ROW_COUNT;
+    QString DATE_ICON;
 
-const bool DEBUG_LOG = true;
-const int CONNECT_TIMEOUT = 3000;
+    QString RIGHT_ICON;
+    QString LEFT_ICON;
 
-const char* const GRPC_SERVER = "192.168.3.235:8500";
-const char* const MOBILENET = "mnet";
-const char* const MOBILENET_SIG = "classify_image";
-const char* const TACTION = "3daction";
-const char* const TACTION_SIG = "predict_image";
-const char* const YOLOV3 = "yolov3";
-const char* const YOLOV3_SIG = "detect_image";
+    int FRAME_ROW_COUNT;
+    int FRAME_COL_COUNT;
+    int MAX_DISPLAY_FRAME;
 
-const float TWICECHECK_SCORE_THRESHOLD = 0.2;
-const float IOU_THRESHOLD = 0.8;
+    bool DEBUG_LOG;
+    int CONNECT_TIMEOUT;
 
+    QString GRPC_SERVER;
+    QString MOBILENET;
+    QString MOBILENET_SIG;
+    QString TACTION;
+    QString TACTION_SIG;
+    QString YOLOV3;
+    QString YOLOV3_SIG;
+
+    float TWICECHECK_SCORE_THRESHOLD;
+    float IOU_THRESHOLD;
+};
 #endif
 

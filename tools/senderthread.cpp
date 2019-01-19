@@ -4,7 +4,7 @@
 #include "common.h"
 #include <QDir>
 #include <QTime>
-
+extern Config* config;
 SenderThread::SenderThread(ChannelData *cdata, QObject *parent)
     :QThread(parent)
 {
@@ -33,7 +33,7 @@ void SenderThread::run()
             qDebug() << "--------------------------------------- have 16 images and predict" ;
 
 
-            QString save_path = QString(PATH_PREFIX) + "/" + QDate::currentDate().toString("yyyy-MM-dd") + "/" + cdata->getSaveDir();
+            QString save_path = QString(config->PATH_PREFIX) + "/" + QDate::currentDate().toString("yyyy-MM-dd") + "/" + cdata->getSaveDir();
             QDir dir(save_path);
 
             if(!dir.exists())

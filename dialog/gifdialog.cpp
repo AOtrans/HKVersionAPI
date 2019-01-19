@@ -3,6 +3,8 @@
 #include <QDebug>
 #include <QFile>
 #include <QMessageBox>
+
+extern Config*config;
 GifDialog::GifDialog(QString location, QString time, QString path, QWidget *parent, MyRightTreeItem* trigger, QTreeView* view) :
     QDialog(parent),
     ui(new Ui::GifDialog)
@@ -11,8 +13,8 @@ GifDialog::GifDialog(QString location, QString time, QString path, QWidget *pare
 
     this->setAttribute(Qt::WA_DeleteOnClose);
     this->setWindowModality(Qt::WindowModal);
-    ui->pbNext->setIcon(QIcon(RIGHT_ICON));
-    ui->pbPre->setIcon(QIcon(LEFT_ICON));
+    ui->pbNext->setIcon(QIcon(config->RIGHT_ICON));
+    ui->pbPre->setIcon(QIcon(config->LEFT_ICON));
 
     m = new QMovie(this);
     ui->lbGif->setMovie(m);
@@ -47,9 +49,9 @@ void GifDialog::reinit(QString location, QString time, QString path, MyRightTree
 void GifDialog::on_pbConfirm_clicked()
 {
     QFile file(filepath);
-    file.rename(filepath.replace(NEW_RECORD, WATCHED));
+    file.rename(filepath.replace(config->NEW_RECORD, config->WATCHED));
     trigger->setIcon(QIcon());
-    trigger->setBindData(filepath.replace(NEW_RECORD, WATCHED));
+    trigger->setBindData(filepath.replace(config->NEW_RECORD, config->WATCHED));
     //this->close();
 }
 

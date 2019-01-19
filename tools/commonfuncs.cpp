@@ -1,6 +1,6 @@
 #include "commonfuncs.h"
 extern TestForm* form;
-
+extern Config* config;
 //todo
 QString decrypt(QString encryptStr)
 {
@@ -631,10 +631,10 @@ bool sdkInit(QWidget* parent)
     }
 
     //print sdk logs
-    NET_DVR_SetLogPrint(DEBUG_LOG);
+    NET_DVR_SetLogPrint(config->DEBUG_LOG);
 
     //set max timeout
-    NET_DVR_SetConnectTime(CONNECT_TIMEOUT, 1);
+    NET_DVR_SetConnectTime(config->CONNECT_TIMEOUT, 1);
     //注册接收异常、重连等消息的窗口句柄或回调函数。
     NET_DVR_SetExceptionCallBack_V30(0, NULL, ExceptionCallBack, parent);
 

@@ -8,6 +8,7 @@
 #include "tfModelClient/tfserverclient.h"
 
 TestForm *form;
+Config* config;
 /*******************************************************************
       Function:   main
    Description:   主函数入口
@@ -17,9 +18,10 @@ TestForm *form;
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+    config = new Config(a.applicationDirPath()+"/Settings/config.ini");
 
     //make sure singal instance in runtime
-    QLockFile lockFile(SINGAL_LOCKER_PATH);
+    QLockFile lockFile(config->SINGAL_LOCKER_PATH);
 
     if (!lockFile.tryLock(100))
     {

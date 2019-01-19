@@ -13,6 +13,7 @@
 #include <QHeaderView>
 #include <QFileInfoList>
 #include <QDate>
+extern Config* config;
 
 TestForm::TestForm(int argc, char *argv[], int w, int h, QWidget *parent) :
     QWidget(parent),
@@ -46,7 +47,7 @@ TestForm::TestForm(int argc, char *argv[], int w, int h, QWidget *parent) :
     if(sdkInit(this))
     {
         //reload settings from xml file
-        if(!analysis(m_deviceList, XML_PATH))
+        if(!analysis(m_deviceList, config->XML_PATH))
             QMessageBox::warning(this, "error", "load XML file failed");
 
         //try to login all devices&init trees
@@ -58,6 +59,7 @@ TestForm::TestForm(int argc, char *argv[], int w, int h, QWidget *parent) :
 
     bar.setValue(100);
     qApp->processEvents();
+    bar.close();
 }
 
 TestForm::~TestForm()
@@ -135,7 +137,7 @@ void TestForm::initRightTree()
     MyRightTreeItem *rootItem_1 = new MyRightTreeItem("History List", rROOT);
     MyRightTreeItem *rootItem_2 = new MyRightTreeItem("Today List", rROOT);
 
-    QDir root_dir(PATH_PREFIX);
+    QDir root_dir(config->PATH_PREFIX);
     foreach (QFileInfo dateInfo, root_dir.entryInfoList(QStringList(), QDir::Dirs | QDir::NoDotAndDotDot)){
         MyRightTreeItem *dateItem = new MyRightTreeItem(dateInfo.fileName(), rDATE);
 
@@ -169,7 +171,7 @@ void TestForm::initRightTree()
 
                     MyRightTreeItem *gifItem = NULL;
 
-                    if(tag != WATCHED)
+                    if(tag != config->WATCHED)
                     {
                         if(label == "1")
                             gifItem = new MyRightTreeItem(dt.toString("hh:mm:ss"), rGIF1, gifInfo.filePath());
@@ -232,8 +234,8 @@ void TestForm::add2GridLayout(DisplayFrame *frame)
 {
     int count = ui->gridLayout->count();
 
-    int row = count/FRAME_COL_COUNT;
-    int col = count%FRAME_COL_COUNT;
+    int row = count/config->FRAME_COL_COUNT;
+    int col = count%config->FRAME_COL_COUNT;
 
     ui->gridLayout->addWidget(frame, row, col);
 }
@@ -246,8 +248,8 @@ void TestForm::initSth()
 //    if(!dir.exists())
 //        dir.mkpath(save_path);
 
-    ui->pbcleft->setIcon(QIcon(LEFT_ICON));
-    ui->pbcright->setIcon(QIcon(RIGHT_ICON));
+    ui->pbcleft->setIcon(QIcon(config->LEFT_ICON));
+    ui->pbcright->setIcon(QIcon(config->RIGHT_ICON));
 }
 
 void TestForm::showRootMenu(QPoint &point)
@@ -755,7 +757,7 @@ void TestForm::deleteDevice(bool)
 
         m_deviceList.remove(m_currentTreeItem->getMapId());
         m_leftTreeModel->removeRow(m_currentTreeItem->row(), m_currentTreeItem->parent()->index());
-        resetDeviceTreeXml(m_deviceList, XML_PATH);
+        resetDeviceTreeXml(m_deviceList, config->XML_PATH);
     }
 }
 
@@ -777,7 +779,7 @@ void TestForm::altDevice(DeviceData *ddata)
         m_currentTreeItem->appendRow(channelItem);
     }
 
-    resetDeviceTreeXml(m_deviceList, XML_PATH);
+    resetDeviceTreeXml(m_deviceList, config->XML_PATH);
 }
 
 void TestForm::addDevice(DeviceData *newdd)
@@ -803,7 +805,7 @@ void TestForm::addDevice(DeviceData *newdd)
 
     m_currentTreeItem->appendRow(deviceItem);
 
-    resetDeviceTreeXml(m_deviceList, XML_PATH);
+    resetDeviceTreeXml(m_deviceList, config->XML_PATH);
     delete newdd;
 }
 
@@ -924,7 +926,7 @@ void TestForm::startRealPlay(ChannelData *cdata, QStandardItem *item)
 
         cdata->setRealhandle(realHandle);
         cdata->frame->setBlackbg(false);
-        item->setIcon(QIcon(CAMERAL_PLAYING_ICON));
+        item->setIcon(QIcon(config->CAMERAL_PLAYING_ICON));
         //1111111111111111111
         cdata->startLS();
         //1111111111111111111
@@ -937,7 +939,7 @@ void TestForm::stopRealPlay(ChannelData *cdata, QStandardItem *item)
 
     NET_DVR_StopRealPlay(cdata->getRealhandle());
     PlayM4_FreePort(cdata->getDecodePort());
-    item->setIcon(QIcon(CAMERAL_ICON));
+    item->setIcon(QIcon(config->CAMERAL_ICON));
 
     DisplayFrame *frame = cdata->frame;
 
@@ -978,7 +980,7 @@ DisplayFrame *TestForm::getFreeFrame()
     }
 
     //try to create a new frame
-    if(m_displayFrames.size() < MAX_DISPLAY_FRAME)
+    if(m_displayFrames.size() < config->MAX_DISPLAY_FRAME)
     {
         DisplayFrame *frame = new DisplayFrame(this, m_displayFrames.size());
         m_displayFrames.append(frame);
@@ -1058,9 +1060,9 @@ QStandardItem *TestForm::findChannelItem(QString channel, QStandardItem *deviceI
 void TestForm::sortFrames()
 {
     QVector<QWidget *> widgets;
-    for(int i = 0; i < FRAME_ROW_COUNT; i++)
+    for(int i = 0; i < config->FRAME_ROW_COUNT; i++)
     {
-        for(int j = 0; j < FRAME_COL_COUNT; j++)
+        for(int j = 0; j < config->FRAME_COL_COUNT; j++)
         {
             QLayoutItem* w = ui->gridLayout->itemAtPosition(i, j);
             if(w != NULL)
@@ -1073,8 +1075,8 @@ void TestForm::sortFrames()
 
     for(int i = 0; i < widgets.size(); i++)
     {
-        int row = i/FRAME_COL_COUNT;
-        int col = i%FRAME_COL_COUNT;
+        int row = i/config->FRAME_COL_COUNT;
+        int col = i%config->FRAME_COL_COUNT;
 
         ui->gridLayout->addWidget(widgets.at(i), row, col);
     }
@@ -1087,14 +1089,14 @@ void TestForm::on_pbcleft_clicked()
         ui->leftTreeView->hide();
         leftTreeExpand = !leftTreeExpand;
 
-        ui->pbcleft->setIcon(QIcon(RIGHT_ICON));
+        ui->pbcleft->setIcon(QIcon(config->RIGHT_ICON));
     }
     else
     {
         ui->leftTreeView->show();
         leftTreeExpand = !leftTreeExpand;
 
-        ui->pbcleft->setIcon(QIcon(LEFT_ICON));
+        ui->pbcleft->setIcon(QIcon(config->LEFT_ICON));
     }
 }
 
@@ -1105,14 +1107,14 @@ void TestForm::on_pbcright_clicked()
         ui->frame->hide();
         rightTreeExpand = !rightTreeExpand;
 
-        ui->pbcright->setIcon(QIcon(LEFT_ICON));
+        ui->pbcright->setIcon(QIcon(config->LEFT_ICON));
     }
     else
     {
         ui->frame->show();
         rightTreeExpand = !rightTreeExpand;
 
-        ui->pbcright->setIcon(QIcon(RIGHT_ICON));
+        ui->pbcright->setIcon(QIcon(config->RIGHT_ICON));
     }
 }
 

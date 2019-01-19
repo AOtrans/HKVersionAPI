@@ -1,5 +1,5 @@
 #include "myrighttreeitem.h"
-
+extern Config* config;
 MyRightTreeItem::MyRightTreeItem(QString text, RightTreeItemType type, QString bindData, bool editAble)
     :QStandardItem(text)
 {
@@ -10,23 +10,23 @@ MyRightTreeItem::MyRightTreeItem(QString text, RightTreeItemType type, QString b
 
     if(type == rDEVICE)
     {
-        this->setIcon(QIcon(DEVICE_ICON));
+        this->setIcon(QIcon(config->DEVICE_ICON));
     }
     else if(type == rCHANNEL)
     {
-        this->setIcon(QIcon(CAMERAL_ICON));
+        this->setIcon(QIcon(config->CAMERAL_ICON));
     }
     else if(type == rGIF1)
     {
-        this->setIcon(QIcon(WARNING_ICON_1));
+        this->setIcon(QIcon(config->WARNING_ICON_1));
     }
     else if(type == rGIF2)
     {
-        this->setIcon(QIcon(WARNING_ICON_2));
+        this->setIcon(QIcon(config->WARNING_ICON_2));
     }
     else if(type == rDATE)
     {
-        this->setIcon(QIcon(DATE_ICON));
+        this->setIcon(QIcon(config->DATE_ICON));
     }
 }
 
