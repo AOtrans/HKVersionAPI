@@ -262,6 +262,86 @@ bool GrpcPredictor::check_box(QVector<float> &inputs)
     return false;
 }
 
+bool GrpcPredictor::testYOLOServer()
+{
+    cv::Mat m = cv::imread(config->TEST_IMG_PATH.toStdString());
+    if(m.empty())
+        return false;
+
+    bool flag=true;
+    for(int i=0; i<config->NUM_SERVICES; i++)
+    {
+        grpc::ChannelArguments args;
+        args.SetUserAgentPrefix(std::to_string(i));
+        TFServerClient testGuide(grpc::CreateCustomChannel(config->GRPC_SERVER.toStdString(), grpc::InsecureChannelCredentials(), args));
+
+        QVector<QVector<cv::Mat> > batch_inputs;
+        QVector<QVector<float> > outputs;
+        QVector<cv::Mat> inputs;
+        inputs.append(m);
+        batch_inputs.append(inputs);
+        if(!testGuide.callPredict(config->YOLOV3.toStdString(), config->YOLOV3_SIG.toStdString(), batch_inputs, outputs))
+            flag =false;
+    }
+
+    return flag;
+}
+
+bool GrpcPredictor::test3DServer()
+{
+    cv::Mat m = cv::imread(config->TEST_IMG_PATH.toStdString());
+    if(m.empty())
+        return false;
+
+    bool flag=true;
+    for(int i=0; i<config->NUM_SERVICES; i++)
+    {
+        grpc::ChannelArguments args;
+        args.SetUserAgentPrefix(std::to_string(i));
+        TFServerClient testGuide(grpc::CreateCustomChannel(config->GRPC_SERVER.toStdString(), grpc::InsecureChannelCredentials(), args));
+
+        QVector<QVector<cv::Mat> > batch_inputs;
+        QVector<QVector<float> > outputs;
+        QVector<cv::Mat> inputs;
+
+        for(int j=0; j<16; j++)
+        {
+            inputs.append(m);
+        }
+
+        batch_inputs.append(inputs);
+        if(!testGuide.callPredict(config->TACTION.toStdString(), config->TACTION_SIG.toStdString(), batch_inputs, outputs))
+            flag =false;
+    }
+
+    return flag;
+}
+
+bool GrpcPredictor::testMnetServer()
+{
+    cv::Mat m = cv::imread(config->TEST_IMG_PATH.toStdString());
+    if(m.empty())
+        return false;
+
+    bool flag=true;
+    for(int i=0; i<config->NUM_SERVICES; i++)
+    {
+        grpc::ChannelArguments args;
+        args.SetUserAgentPrefix(std::to_string(i));
+        TFServerClient testGuide(grpc::CreateCustomChannel(config->GRPC_SERVER.toStdString(), grpc::InsecureChannelCredentials(), args));
+
+        QVector<QVector<cv::Mat> > batch_inputs;
+        QVector<QVector<float> > outputs;
+        QVector<cv::Mat> inputs;
+        inputs.append(m);
+        batch_inputs.append(inputs);
+        if(!testGuide.callPredict(config->MOBILENET.toStdString(), config->MOBILENET_SIG.toStdString(), batch_inputs, outputs))
+            flag =false;
+    }
+
+    return flag;
+}
+
 void GrpcPredictor::cleanThread()
 {
     GIFSaver *saver = (GIFSaver *)sender();

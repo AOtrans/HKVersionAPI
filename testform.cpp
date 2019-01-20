@@ -13,6 +13,7 @@
 #include <QHeaderView>
 #include <QFileInfoList>
 #include <QDate>
+#include <tools/grpcpredictor.h>
 extern Config* config;
 
 TestForm::TestForm(int argc, char *argv[], int w, int h, QWidget *parent) :
@@ -39,6 +40,25 @@ TestForm::TestForm(int argc, char *argv[], int w, int h, QWidget *parent) :
     DisplayFrame *frame = new DisplayFrame(this, 0);
     m_displayFrames.append(frame);
     ui->gridLayout->addWidget(frame);
+
+
+    bar.setValue(40);
+    qApp->processEvents();
+
+    if(!GrpcPredictor::testYOLOServer())
+        QMessageBox::warning(this, "error", "connect server error:yolo");
+
+    bar.setValue(50);
+    qApp->processEvents();
+
+    if(!GrpcPredictor::test3DServer())
+        QMessageBox::warning(this, "error", "connect server error:3d");
+
+    bar.setValue(60);
+    qApp->processEvents();
+
+    if(!GrpcPredictor::testMnetServer())
+        QMessageBox::warning(this, "error", "connect server error:mnet");
 
     bar.setValue(75);
     qApp->processEvents();

@@ -5,7 +5,6 @@
 #include <QDesktopWidget>
 #include <QMessageBox>
 #include <QLockFile>
-#include "tfModelClient/tfserverclient.h"
 
 TestForm *form;
 Config* config;
@@ -18,7 +17,18 @@ Config* config;
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+    qDebug()<<"current applicationDirPath: "<<QCoreApplication::applicationDirPath();
+    qDebug()<<"current Path: "<<QDir::currentPath();
     config = new Config(a.applicationDirPath()+"/Settings/config.ini");
+
+    if(!config->ready)
+    {
+        QMessageBox msgBox;
+        msgBox.setIcon(QMessageBox::Warning);
+        msgBox.setText("missing ini config file in:   " + a.applicationDirPath() + "/Settings/config.ini");
+        msgBox.exec();
+        return 1;
+    }
 
     //make sure singal instance in runtime
     QLockFile lockFile(config->SINGAL_LOCKER_PATH);
@@ -34,8 +44,6 @@ int main(int argc, char *argv[])
 
     int w = a.desktop()->width();
     int h = a.desktop()->height();
-    qDebug()<<"current applicationDirPath: "<<QCoreApplication::applicationDirPath();
-    qDebug()<<"current Path: "<<QDir::currentPath();
 
     TestForm f(argc, argv, w, h);
     form = &f;

@@ -20,6 +20,10 @@ public:
     bool check_box(QVector<float>& inputs);
 
     static int index;
+
+    static bool testYOLOServer();
+    static bool test3DServer();
+    static bool testMnetServer();
 private:
     QVector<QVector<float> > pre_boxes;
     TFServerClient *guide;

@@ -21,6 +21,7 @@ public:
         if(!QFile(iniFile).exists())
         {
             qDebug() << "missing ini config file";
+            ready = false;
             return;
         }
 
@@ -82,7 +83,15 @@ public:
         qDebug() << "load TWICECHECK_SCORE_THRESHOLD:" << TWICECHECK_SCORE_THRESHOLD;
         IOU_THRESHOLD = set.value("CONFIG/IOU_THRESHOLD").toFloat();
         qDebug() << "load IOU_THRESHOLD:" << IOU_THRESHOLD;
+
+        NUM_SERVICES = set.value("CONFIG/NUM_SERVICES").toInt();
+        qDebug() << "load NUM_SERVICES:" << NUM_SERVICES;
+
+        TEST_IMG_PATH = set.value("CONFIG/TEST_IMG_PATH").toString();
+        qDebug() << "load TEST_IMG_PATH:" << TEST_IMG_PATH;
         qDebug() << "*********************************************************";
+
+        ready = true;
     }
     QString SINGAL_LOCKER_PATH;
 
@@ -120,6 +129,13 @@ public:
 
     float TWICECHECK_SCORE_THRESHOLD;
     float IOU_THRESHOLD;
+
+    int NUM_SERVICES;
+
+    QString TEST_IMG_PATH;
+
+
+    bool ready;
 };
 #endif
 
