@@ -64,7 +64,7 @@ QString IniUtil::getValue( QString seg, QString key)
 
     }
     return value;
-    qDebug()<<"visiable="<<visiable<<",x="<<x<<",y="<<y<<",txt="<<txt<<",img="<<img;
+    //qDebug()<<"visiable="<<visiable<<",x="<<x<<",y="<<y<<",txt="<<txt<<",img="<<img;
 }
 
 

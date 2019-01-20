@@ -13,6 +13,11 @@ GrpcPredictor::GrpcPredictor(QObject *parent):
     guide = new TFServerClient(grpc::CreateCustomChannel(config->GRPC_SERVER.toStdString(), grpc::InsecureChannelCredentials(), args));
 }
 
+GrpcPredictor::~GrpcPredictor()
+{
+    delete guide;
+}
+
 QVector<int> GrpcPredictor::argmax(QVector<QVector<float> > &inputs)
 {
     QVector<int> outputs;
@@ -38,7 +43,7 @@ QList<BBox> GrpcPredictor::predict(QQueue<cv::Mat> &param, QString param2)
 {
     if(param.size()!=16)
     {
-        qDebug() << "wrong input size";
+        qFatal("wrong input size");
         return QList<BBox>();
     }
 

@@ -70,6 +70,7 @@ void GifDialog::on_pbNext_clicked()
     else
     {
         QMessageBox::information(this, "info", "no more record");
+        qDebug() << "no more record";
     }
 }
 
@@ -87,5 +88,6 @@ void GifDialog::on_pbPre_clicked()
     else
     {
         QMessageBox::information(this, "info", "no more record");
+        qDebug() << "no more record";
     }
 }

@@ -10,6 +10,7 @@ class GrpcPredictor:public QObject
     Q_OBJECT
 public:
     GrpcPredictor(QObject* parent);
+    ~GrpcPredictor();
 
     QVector<int> argmax(QVector<QVector<float> >& inputs);
 

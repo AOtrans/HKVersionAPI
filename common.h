@@ -20,7 +20,7 @@ public:
     Config(QString iniFile){
         if(!QFile(iniFile).exists())
         {
-            qDebug() << "missing ini config file";
+            qWarning() << "missing ini config file";
             ready = false;
             return;
         }

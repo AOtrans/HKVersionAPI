@@ -46,20 +46,26 @@ TestForm::TestForm(int argc, char *argv[], int w, int h, QWidget *parent) :
     qApp->processEvents();
 
     if(!GrpcPredictor::testYOLOServer())
+    {
         QMessageBox::warning(this, "error", "connect server error:yolo");
-
+        qWarning() << "connect server error:yolo";
+    }
     bar.setValue(50);
     qApp->processEvents();
 
     if(!GrpcPredictor::test3DServer())
+    {
         QMessageBox::warning(this, "error", "connect server error:3d");
-
+        qWarning() << "connect server error:3d";
+    }
     bar.setValue(60);
     qApp->processEvents();
 
     if(!GrpcPredictor::testMnetServer())
+    {
         QMessageBox::warning(this, "error", "connect server error:mnet");
-
+        qWarning() << "connect server error:mnet";
+    }
     bar.setValue(75);
     qApp->processEvents();
 
@@ -68,8 +74,10 @@ TestForm::TestForm(int argc, char *argv[], int w, int h, QWidget *parent) :
     {
         //reload settings from xml file
         if(!analysis(m_deviceList, config->XML_PATH))
+        {
             QMessageBox::warning(this, "error", "load XML file failed");
-
+            qWarning() << "load XML file failed";
+        }
         //try to login all devices&init trees
         loginAllDevices();
         initLeftTree();
@@ -319,7 +327,7 @@ bool TestForm::testLogin(QString mapId)
     //登录失败直接返回
     if (device->m_iuserid < 0)
     {
-        qDebug() << device->getDeviceName() << "login fail ErrorCode:" << NET_DVR_GetLastError();
+        qWarning() << device->getDeviceName() << "login fail ErrorCode:" << NET_DVR_GetLastError();
         return false;
     }
     else
@@ -338,7 +346,7 @@ bool TestForm::testLogin(QString mapId)
         if (!NET_DVR_GetDVRConfig(device->m_iuserid,
                                   NET_DVR_GET_DEVICECFG,0, &devicecfg, sizeof(NET_DVR_DEVICECFG),&Bytesreturned))
         {
-            qDebug() << "NET_DVR_GetDVRCFG SDK_LAST_ERROR:" << NET_DVR_GetLastError();
+            qWarning() << "NET_DVR_GetDVRCFG SDK_LAST_ERROR:" << NET_DVR_GetLastError();
             return false;
         }
         else
@@ -456,7 +464,10 @@ void TestForm::loginAllDevices()
         DeviceData &ddata = m_deviceList[mapId];
 
         if(!testLogin(mapId))
+        {
             QMessageBox::warning(this, "error", "Login device:"+ddata.getDeviceName()+" failed");
+            qWarning() << "Login device:"+ddata.getDeviceName()+" failed";
+        }
     }
 }
 
@@ -785,7 +796,10 @@ void TestForm::altDevice(DeviceData *ddata)
 {
     //check new config
     if(!testLogin(ddata->getMapId()))
+    {
         QMessageBox::warning(this, "error", "Login device:"+ddata->getDeviceName()+" failed");
+        qWarning() << "Login device:"+ddata->getDeviceName()+" failed";
+    }
 
     //remove old channel items and create new channel items
     m_leftTreeModel->removeRows(0, m_currentTreeItem->rowCount(), m_currentTreeItem->index());
@@ -810,8 +824,10 @@ void TestForm::addDevice(DeviceData *newdd)
     DeviceData *ddata = &m_deviceList[newdd->getMapId()];
 
     if(!testLogin(ddata->getMapId()))
+    {
         QMessageBox::warning(this, "error", "Login device:"+ddata->getDeviceName()+" failed");
-
+        qWarning() << "Login device:"+ddata->getDeviceName()+" failed";
+    }
     //create device item and channel items
     MyLeftTreeItem *deviceItem = new MyLeftTreeItem(ddata->getDeviceName(), ddata->getMapId(), lDEVICE, ddata);
 
@@ -912,6 +928,7 @@ void TestForm::startRealPlay(ChannelData *cdata, QStandardItem *item)
         cdata->frame = NULL;
         cdata->isPlaying = false;
         QMessageBox::information(this, tr("NET_DVR_RealPlay error"), tr("SDK_LASTERROR=%1").arg(NET_DVR_GetLastError()));
+        qWarning() << tr("NET_DVR_RealPlay error") << tr("SDK_LASTERROR=%1").arg(NET_DVR_GetLastError());
 
         return;
     }
@@ -929,6 +946,7 @@ void TestForm::startRealPlay(ChannelData *cdata, QStandardItem *item)
                 cdata->isPlaying = false;
                 QMessageBox::information(this, tr("NET_DVR_GetDVRConfig"), \
                                          tr("SDK_LAST_ERROR=%1").arg(NET_DVR_GetLastError()));
+                qWarning() << tr("NET_DVR_GetDVRConfig") << tr("SDK_LAST_ERROR=%1").arg(NET_DVR_GetLastError());
 
                 return ;
             }
@@ -938,7 +956,8 @@ void TestForm::startRealPlay(ChannelData *cdata, QStandardItem *item)
                 cdata->frame = NULL;
                 cdata->isPlaying = false;
                 QMessageBox::information(this,tr("NET_DVR_RealPlay error"), \
-                                         tr("该通道不在线，预览失败"));
+                                         tr("channel not online"));
+                qWarning() << tr("NET_DVR_RealPlay error") << tr("channel not online");
 
                 return ;
             }

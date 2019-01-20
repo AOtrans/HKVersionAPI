@@ -1,6 +1,6 @@
 #include "tfserverclient.h"
 #include <math.h>
-
+#include <QDebug>
 void addMat2Bytes(cv::Mat m, tensorflow::TensorProto &proto)
 {
     std::vector<uchar> buf;
@@ -69,7 +69,7 @@ bool TFServerClient::callPredict(const std::__cxx11::string &model_name,
 
             if(singal_batch.size()!=16)
             {
-                std::cout << "wrong time_step size of 3d action" << std::endl;
+                qFatal("wrong time_step size of 3d action");
             }
 
             for(int time_step = 0; time_step < 16 ; time_step ++)
@@ -160,14 +160,14 @@ bool TFServerClient::callPredict(const std::__cxx11::string &model_name,
     Status status = stub_->Predict(&context, predictRequest, &response);
 
     if (status.ok()) {
-        std::cout << "call predict ok" << std::endl;
-        //std::cout << "outputs size is " << response.outputs_size() << std::endl;
+        qDebug() << "call predict ok";
+        //qDebug() << "outputs size is " << response.outputs_size();
         OutMap& map_outputs = *response.mutable_outputs();
 
         if(model_name == "mnet")
         {
             tensorflow::TensorProto& result_tensor_proto = map_outputs["scores"];
-            std::cout << "mnet" << std::endl;
+            qDebug() << "mnet";
             for (int i = 0; i < result_tensor_proto.float_val_size(); ++i) {
                 if(i%2 == 0)
                     predict_outputs.append(QVector<float>());
@@ -179,7 +179,7 @@ bool TFServerClient::callPredict(const std::__cxx11::string &model_name,
         else if(model_name == "3daction")
         {
             tensorflow::TensorProto& result_tensor_proto = map_outputs["logit"];
-            std::cout << "3daction" << std::endl;
+            qDebug() << "3daction";
             for (int i = 0; i < result_tensor_proto.float_val_size(); ++i) {
                 if(i%3 == 0)
                     predict_outputs.append(QVector<float>());
@@ -191,7 +191,7 @@ bool TFServerClient::callPredict(const std::__cxx11::string &model_name,
         else if(model_name == "yolov3")
         {
             tensorflow::TensorProto& result_tensor_proto = map_outputs["boxes"];
-            std::cout << "yolov3" << std::endl;
+            qDebug() << "yolov3";
             for (int i = 0; i < result_tensor_proto.float_val_size(); ++i) {
                 if(i%4 == 0)
                     predict_outputs.append(QVector<float>());
@@ -201,18 +201,18 @@ bool TFServerClient::callPredict(const std::__cxx11::string &model_name,
             }
 
 //            tensorflow::TensorProto& result_tensor_proto_s = map_outputs["scores"];
-//            std::cout << "scores" << std::endl;
+//            qDebug() << "scores";
 //            for (int i = 0; i < result_tensor_proto_s.float_val_size(); ++i) {
 //                float val = result_tensor_proto_s.float_val(i);
-//                std::cout << "probability of " << i << " is " << val << std::endl;
+//                qDebug() << "probability of " << i << " is " << val;
 
 //            }
 
 //            tensorflow::TensorProto& result_tensor_proto_c = map_outputs["classes"];
-//            std::cout << "classes" << std::endl;
+//            qDebug() << "classes";
 //            for (int i = 0; i < result_tensor_proto_c.int_val_size(); ++i) {
 //                int val = result_tensor_proto_c.int_val(i);
-//                std::cout << "probability of " << i << " is " << val << std::endl;
+//                qDebug() << "probability of " << i << " is " << val;
 
 //            }
         }
@@ -223,8 +223,8 @@ bool TFServerClient::callPredict(const std::__cxx11::string &model_name,
 
         return true;
     } else {
-        std::cout << "gRPC call return code: " << status.error_code() << ": "
-                  << status.error_message() << std::endl;
+        qWarning() << "gRPC call return code: " << status.error_code() << ": "
+                  << status.error_message().c_str();
         return false;
     }
 }

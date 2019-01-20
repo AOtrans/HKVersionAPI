@@ -51,6 +51,7 @@ void DeviceDialog::on_pb_confirm_clicked()
         if(checklist.indexOf(ui->leIp->text())!=-1)
         {
             QMessageBox::information(this, "info", ui->leIp->text()+" already in devices list");
+            qDebug() << ui->leIp->text()+" already in devices list";
             return;
         }
 
@@ -69,6 +70,7 @@ void DeviceDialog::on_pb_confirm_clicked()
         if(checklist.indexOf(ui->leIp->text())!=-1)
         {
             QMessageBox::information(this, "info", ui->leIp->text()+" already in devices list");
+            qDebug() << ui->leIp->text()+" already in devices list";
             return;
         }
 
@@ -84,7 +86,7 @@ void DeviceDialog::on_pb_confirm_clicked()
     }
     else
     {
-        qDebug() << "error dialog TYPE" << t;
+        qFatal("error dialog TYPE", t);
     }
 
     this->close();

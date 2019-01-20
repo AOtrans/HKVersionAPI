@@ -23,14 +23,14 @@ bool resetDeviceTreeXml(QMap<QString, DeviceData> &deviceList, QString xmlFilePa
     {
         if(!file.remove())
         {
-            qDebug() << "reset xml failed";
+            qWarning() << "reset xml failed";
             return false;
         }
     }
 
     if(!file.open(QIODevice::ReadWrite | QFile::Text))
     {
-        qDebug() << "open file failed";
+        qWarning() << "open file failed";
         return false;
     }
 
@@ -83,7 +83,7 @@ bool analysis(QMap<QString, DeviceData> &deviceList, QString xmlFilePath)
 
     if(!file.open(QIODevice::ReadWrite | QFile::Text))
     {
-        qDebug() << "open file failed";
+        qWarning() << "open file failed";
         return false;
     }
 
@@ -404,7 +404,7 @@ void CALLBACK  DataCallBack(LONG lRealHandle,DWORD dwDataType,BYTE *pBuffer,DWOR
 
         if (!PlayM4_GetPort(&lPort))  //获取播放库未使用的通道号
         {
-            qDebug() << "fail to get decode port";
+            qWarning() << "fail to get decode port";
             break;
         }
 
@@ -463,7 +463,7 @@ void CALLBACK MessCallBack_V30(LONG lCommand, NET_DVR_ALARMER *pAlarmer, char *p
 
     if(lCommand < EXCEPTION_EXCHANGE)
     {
-        qDebug() << "wrong lCommand code";
+        qWarning() << "wrong lCommand code";
         return;
     }
 
@@ -508,7 +508,7 @@ void CALLBACK MessCallBack_V30(LONG lCommand, NET_DVR_ALARMER *pAlarmer, char *p
             alarminformation.append("未知告警");
             break;
         }
-        qDebug() << alarminformation;
+        qWarning() << alarminformation;
 
         break;
         //case COMM_ALARM_RULE:
@@ -561,7 +561,7 @@ void CALLBACK MessCallBack_V30(LONG lCommand, NET_DVR_ALARMER *pAlarmer, char *p
             break;
         }
 
-        qDebug() << alarminformation;
+        qWarning() << alarminformation;
         break;
     case COMM_IPCCFG :
         break;
@@ -583,32 +583,40 @@ void CALLBACK ExceptionCallBack(DWORD dwType, LONG lUserID, LONG lHandle, void *
     {
     case EXCEPTION_AUDIOEXCHANGE:		//Audio exchange exception
         QMessageBox::information(parent, "ERROR", "Audio exchange exception!");
+        qWarning() << "ERROR" << "Audio exchange exception!";
         break;
 
         //Alarm//
     case EXCEPTION_ALARM:			            //Alarm exception
         QMessageBox::information(parent, "ERROR", "Alarm exception!");
+        qWarning() << "ERROR" << "Alarm exception!";
         break;
     case EXCEPTION_ALARMRECONNECT:  //Alarm reconnect
         QMessageBox::information(parent, "ERROR", "Alarm connect exception!");
+        qWarning() << "ERROR" << "Alarm connect exception!";
         break;
     case ALARM_RECONNECTSUCCESS:      //Alarm reconnect success
         QMessageBox::information(parent, "ERROR", "Alarm reconnect success!");
+        qWarning() << "ERROR" << "Alarm reconnect success!";
         break;
 
     case EXCEPTION_SERIAL:			           //Serial exception
         QMessageBox::information(parent, "ERROR", "Serial exception!");
+        qWarning() << "ERROR" << "Serial exception!";
         break;
 
         //Preview//
     case EXCEPTION_PREVIEW:			     //Preview exception
         QMessageBox::information(parent, "ERROR", "Preview exception!");
+        qWarning() << "ERROR" << "Preview exception!";
         break;
     case EXCEPTION_RECONNECT:			 //preview reconnect
         QMessageBox::information(parent, "ERROR", "Preview reconnect exception!");
+        qWarning() << "ERROR" << "Preview reconnect exception!";
         break;
     case PREVIEW_RECONNECTSUCCESS: //Preview reconnect success
         QMessageBox::information(parent, "ERROR", "Preview reconnect success!");
+        qWarning() << "ERROR" << "Preview reconnect success!";
         break;
     default:
         break;
@@ -621,7 +629,7 @@ bool sdkInit(QWidget* parent)
     {
         QMessageBox::warning(parent,"SDK INITIAL ERROR", QString("SDK_LAST_ERROR=%1").arg(NET_DVR_GetLastError()));
 
-        qDebug() << "NET_DVR_Init Fail" << QString::number(NET_DVR_GetLastError());
+        qWarning() << "NET_DVR_Init Fail" << QString::number(NET_DVR_GetLastError());
 
         return false;
     }
@@ -646,7 +654,7 @@ bool sdkInit(QWidget* parent)
     int listenhandle = NET_DVR_StartListen_V30(NULL, 7200, MessCallBack_V30, (void*)0 );
     if( listenhandle < 0 )
     {
-        qDebug() << "StartListen failed, lastError:" << NET_DVR_GetLastError();
+        qWarning() << "StartListen failed, lastError:" << NET_DVR_GetLastError();
     }
 
     qDebug() << "set capture jpeg mode" << NET_DVR_SetCapturePictureMode(JPEG_MODE);
