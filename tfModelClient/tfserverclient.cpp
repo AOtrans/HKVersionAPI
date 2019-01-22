@@ -44,7 +44,7 @@ bool TFServerClient::callPredict(const std::__cxx11::string &model_name,
         for(int batch = 0; batch < batch_inputs.at(0).size(); batch++)
         {
             cv::Mat m = batch_inputs.at(0).at(batch).clone();
-            cv::cvtColor(m, m,CV_BGR2RGB);
+            //cv::cvtColor(m, m,CV_BGR2RGB);
             cv::resize(m, m, cv::Size(224, 224));
 
 //            int mat_size = m.rows * m.cols * m.channels();
@@ -75,7 +75,7 @@ bool TFServerClient::callPredict(const std::__cxx11::string &model_name,
             for(int time_step = 0; time_step < 16 ; time_step ++)
             {
                 cv::Mat m = singal_batch.at(time_step).clone();
-                cv::cvtColor(m,m,CV_BGR2RGB);
+                //cv::cvtColor(m,m,CV_BGR2RGB);
 
                 float height = m.rows;
                 float width = m.cols;
@@ -121,7 +121,7 @@ bool TFServerClient::callPredict(const std::__cxx11::string &model_name,
     else if(model_name == "yolov3")//shape [1,1]
     {
         cv::Mat m = batch_inputs.at(0).at(0).clone();
-        cv::cvtColor(m,m,CV_BGR2RGB);
+        //cv::cvtColor(m,m,CV_BGR2RGB);
 
         float shape0 = m.rows;
         float shape1= m.cols;
@@ -135,7 +135,7 @@ bool TFServerClient::callPredict(const std::__cxx11::string &model_name,
         int new_h = shape0*scale;
 
         cv::resize(m, m, cv::Size(new_w, new_h),0,0, cv::INTER_CUBIC);
-        cv::copyMakeBorder(m, m, (416-new_h)/2, 416-new_h-(416-new_h)/2, (416-new_w)/2, 416-new_w-(416-new_w)/2, cv::BORDER_CONSTANT, cv::Scalar(128));
+        cv::copyMakeBorder(m, m, (416-new_h)/2, 416-new_h-(416-new_h)/2, (416-new_w)/2, 416-new_w-(416-new_w)/2, cv::BORDER_CONSTANT, cv::Scalar(128, 128, 128));
 
 //        int mat_size = m.rows * m.cols * m.channels();
 
