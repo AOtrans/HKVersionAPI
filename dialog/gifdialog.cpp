@@ -15,6 +15,7 @@ GifDialog::GifDialog(QString location, QString time, QString path, QWidget *pare
     this->setWindowModality(Qt::WindowModal);
     ui->pbNext->setIcon(QIcon(config->RIGHT_ICON));
     ui->pbPre->setIcon(QIcon(config->LEFT_ICON));
+    ui->lePath->setText(path);
 
     m = new QMovie(this);
     ui->lbGif->setMovie(m);

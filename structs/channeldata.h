@@ -17,6 +17,7 @@
 #include <QMutex>
 #include "tools/senderthread.h"
 #include "dialog/displayframe.h"
+#include <QStandardItem>
 
 class SenderThread;
 class DisplayFrame;
@@ -88,6 +89,9 @@ public:
 
     QQueue<cv::Mat> getImageQueue();
 
+    QStandardItem *getBindItem() const;
+    void setBindItem(QStandardItem *value);
+
 private:
     //通道名称
     QString m_qchannelname;
@@ -118,6 +122,8 @@ private:
     SenderThread* st = NULL;
 
     QObject *parent;
+
+    QStandardItem *bindItem;
 
 };
 #endif /* CHANNELDATA_H_ */

@@ -60,6 +60,8 @@ ChannelData::ChannelData(const ChannelData& cdata)
     parent = cdata.parent;
 
     st = new SenderThread(this, parent);
+
+    bindItem = cdata.bindItem;
 }
 
 /************************************************************************
@@ -425,4 +427,14 @@ QQueue<cv::Mat> ChannelData::getImageQueue()
     queueMtx->unlock();
 
     return tmp;
+}
+
+QStandardItem *ChannelData::getBindItem() const
+{
+    return bindItem;
+}
+
+void ChannelData::setBindItem(QStandardItem *value)
+{
+    bindItem = value;
 }

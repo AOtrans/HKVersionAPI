@@ -130,6 +130,7 @@ void TestForm::initLeftTree()
             //binging target cdata inside the channel list, set Item mapid = ""
             ChannelData *cdata = &clist[i];
             MyLeftTreeItem *channelItem = new MyLeftTreeItem(cdata->getChannelName(), "", lCHANNEL, cdata);
+            cdata->setBindItem(channelItem);
             deviceItem->appendRow(channelItem);
         }
 
@@ -268,6 +269,26 @@ void TestForm::add2GridLayout(DisplayFrame *frame)
     ui->gridLayout->addWidget(frame, row, col);
 }
 
+void TestForm::closeChannel(int id, int handle)
+{
+    foreach(QString mapId, m_deviceList.keys())
+    {
+        DeviceData &ddata = m_deviceList[mapId];
+
+        if(ddata.getUsrID() == id)
+        {
+            QList<ChannelData> &qlistchanneldata = ddata.m_qlistchanneldata;
+            for(int i=0; i<qlistchanneldata.size(); i++)
+            {
+                if(qlistchanneldata[i].getRealhandle()==handle)
+                {
+                    stopRealPlay(&qlistchanneldata[i], qlistchanneldata[i].getBindItem());
+                }
+            }
+        }
+    }
+}
+
 void TestForm::initSth()
 {
 //    QString save_path = QString(PATH_PREFIX) + "/" + QDate::currentDate().toString("yyyy-MM-dd");
@@ -306,6 +327,10 @@ void TestForm::showDeviceMenu(QPoint &point)
     QAction *acAlt = new QAction("alt Device", &menu);
     connect(acAlt, SIGNAL(triggered(bool)), this, SLOT(showAltDialog(bool)));
 
+    QAction *acReload = new QAction("reload Device", &menu);
+    connect(acReload, SIGNAL(triggered(bool)), this, SLOT(reloadDevice(bool)));
+
+    menu.addAction(acReload);
     menu.addAction(acAlt);
     menu.addAction(acDelete);
     menu.exec(showP);
@@ -316,6 +341,7 @@ bool TestForm::testLogin(QString mapId)
     qDebug() << "-------------------Test login------------------------";
 
     DeviceData *device = &m_deviceList[mapId];
+    device->m_qlistchanneldata.clear();
 
     //先要尝试登陆设备，然后还要判断通道情况
     device->m_iuserid = NET_DVR_Login_V30(device->getIP().toLatin1().data(),
@@ -810,6 +836,7 @@ void TestForm::altDevice(DeviceData *ddata)
     {
         ChannelData *cdata = &clist[i];
         MyLeftTreeItem *channelItem = new MyLeftTreeItem(cdata->getChannelName(), "", lCHANNEL, cdata);
+        cdata->setBindItem(channelItem);
         m_currentTreeItem->appendRow(channelItem);
     }
 
@@ -836,6 +863,7 @@ void TestForm::addDevice(DeviceData *newdd)
     {
         ChannelData *cdata = &clist[i];
         MyLeftTreeItem *channelItem = new MyLeftTreeItem(cdata->getChannelName(), "", lCHANNEL, cdata);
+        cdata->setBindItem(channelItem);
         deviceItem->appendRow(channelItem);
     }
 
@@ -920,7 +948,7 @@ void TestForm::startRealPlay(ChannelData *cdata, QStandardItem *item)
     //取流
     int realHandle = NET_DVR_RealPlay_V30(userID, clientinfo, DataCallBack, cdata,0);
 
-    qDebug("realPlay---Protocal:%d", clientinfo->lLinkMode);
+    qDebug() << "realPlay handle:" << realHandle;
 
     if (realHandle < 0)
     {
@@ -1136,6 +1164,36 @@ void TestForm::on_pbcleft_clicked()
         leftTreeExpand = !leftTreeExpand;
 
         ui->pbcleft->setIcon(QIcon(config->LEFT_ICON));
+    }
+}
+
+void TestForm::reloadDevice(bool)
+{
+    if(m_deviceList[m_currentTreeItem->getMapId()].isPlaying())
+    {
+        QMessageBox::information(this, "infomation", "please close device first");
+        return;
+    }
+
+    DeviceData &ddata = m_deviceList[m_currentTreeItem->getMapId()];
+
+    if(!testLogin(m_currentTreeItem->getMapId()))
+    {
+        QMessageBox::warning(this, "error", "Login device:"+ddata.getDeviceName()+" failed");
+        qWarning() << "Login device:"+ddata.getDeviceName()+" failed";
+    }
+
+    //remove old channel items and create new channel items
+    m_leftTreeModel->removeRows(0, m_currentTreeItem->rowCount(), m_currentTreeItem->index());
+    m_currentTreeItem->setText(ddata.getDeviceName());
+
+    QList<ChannelData> &clist = ddata.getChannelData();
+    for(int i = 0; i<clist.size(); i++)
+    {
+        ChannelData *cdata = &clist[i];
+        MyLeftTreeItem *channelItem = new MyLeftTreeItem(cdata->getChannelName(), "", lCHANNEL, cdata);
+        cdata->setBindItem(channelItem);
+        m_currentTreeItem->appendRow(channelItem);
     }
 }
 

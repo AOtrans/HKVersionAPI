@@ -577,50 +577,63 @@ void CALLBACK ExceptionCallBack(DWORD dwType, LONG lUserID, LONG lHandle, void *
 {
     qDebug("ExceptionCallBack lUserID:%d, handle:%d, user data:%p", lUserID, lHandle, pUser);
 
-    QWidget *parent = (QWidget*)pUser;
+//    QWidget *parent = (QWidget*)pUser;
+    QMessageBox *mbox = new QMessageBox(QMessageBox::Warning,"ERROR", "");
+    mbox->setModal(false);
 
     switch(dwType)
     {
     case EXCEPTION_AUDIOEXCHANGE:		//Audio exchange exception
-        QMessageBox::information(parent, "ERROR", "Audio exchange exception!");
+        //QMessageBox::information(0, "ERROR", "Audio exchange exception!");
+        mbox->setText("Audio exchange exception!");
         qWarning() << "ERROR" << "Audio exchange exception!";
         break;
 
         //Alarm//
     case EXCEPTION_ALARM:			            //Alarm exception
-        QMessageBox::information(parent, "ERROR", "Alarm exception!");
+        //QMessageBox::information(0, "ERROR", "Alarm exception!");
+        mbox->setText("Alarm exception!");
         qWarning() << "ERROR" << "Alarm exception!";
         break;
     case EXCEPTION_ALARMRECONNECT:  //Alarm reconnect
-        QMessageBox::information(parent, "ERROR", "Alarm connect exception!");
+        //QMessageBox::information(0, "ERROR", "Alarm connect exception!");
+        mbox->setText("Alarm connect exception!");
         qWarning() << "ERROR" << "Alarm connect exception!";
         break;
     case ALARM_RECONNECTSUCCESS:      //Alarm reconnect success
-        QMessageBox::information(parent, "ERROR", "Alarm reconnect success!");
+        //QMessageBox::information(0, "ERROR", "Alarm reconnect success!");
+        mbox->setText("Alarm reconnect success!");
         qWarning() << "ERROR" << "Alarm reconnect success!";
         break;
 
     case EXCEPTION_SERIAL:			           //Serial exception
-        QMessageBox::information(parent, "ERROR", "Serial exception!");
+        //QMessageBox::information(0, "ERROR", "Serial exception!");
+        mbox->setText("Serial exception!");
         qWarning() << "ERROR" << "Serial exception!";
         break;
 
         //Preview//
     case EXCEPTION_PREVIEW:			     //Preview exception
-        QMessageBox::information(parent, "ERROR", "Preview exception!");
+        //QMessageBox::information(0, "ERROR", "Preview exception!");
+        mbox->setText("Preview exception!");
+        form->closeChannel(lUserID, lHandle);
         qWarning() << "ERROR" << "Preview exception!";
         break;
     case EXCEPTION_RECONNECT:			 //preview reconnect
-        QMessageBox::information(parent, "ERROR", "Preview reconnect exception!");
+        //QMessageBox::information(0, "ERROR", "Preview reconnect exception!");
+        mbox->setText("Preview reconnect exception!");
         qWarning() << "ERROR" << "Preview reconnect exception!";
         break;
     case PREVIEW_RECONNECTSUCCESS: //Preview reconnect success
-        QMessageBox::information(parent, "ERROR", "Preview reconnect success!");
+        //QMessageBox::information(0, "ERROR", "Preview reconnect success!");
+        mbox->setText("Preview reconnect success!");
         qWarning() << "ERROR" << "Preview reconnect success!";
         break;
     default:
         break;
     }
+
+    mbox->show();
 }
 
 bool sdkInit(QWidget* parent)
@@ -643,6 +656,7 @@ bool sdkInit(QWidget* parent)
 
     //set max timeout
     NET_DVR_SetConnectTime(config->CONNECT_TIMEOUT, 1);
+    NET_DVR_SetReconnect(3000, 0);
     //注册接收异常、重连等消息的窗口句柄或回调函数。
     NET_DVR_SetExceptionCallBack_V30(0, NULL, ExceptionCallBack, parent);
 

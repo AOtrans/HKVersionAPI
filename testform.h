@@ -35,6 +35,7 @@ public:
     QStringList getCheckList();
 
     void add2GridLayout(DisplayFrame *);
+    void closeChannel(int id, int handle);
 
     void initSth();//sth todo before initalize
 private:
@@ -85,6 +86,8 @@ private slots:
     void onRightTreeDoubleClicked(const QModelIndex&);
 
     void on_pbcleft_clicked();
+
+    void reloadDevice(bool);
 
     void on_pbcright_clicked();
 
