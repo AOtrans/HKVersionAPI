@@ -76,7 +76,7 @@ bool resetDeviceTreeXml(QMap<QString, DeviceData> &deviceList, QString xmlFilePa
 }
 
 //analysis xml file, initialize device list
-bool analysis(QMap<QString, DeviceData> &deviceList, QString xmlFilePath)
+bool analysis(QMap<QString, DeviceData> &deviceList, QMap<QString, QString> &nameMap, QString xmlFilePath)
 {
     qDebug() << "start analysis:" << xmlFilePath;
     QFile file(xmlFilePath);
@@ -113,6 +113,8 @@ bool analysis(QMap<QString, DeviceData> &deviceList, QString xmlFilePath)
                 currentDevice->setPort(attributes.value("port").toInt() );
                 currentDevice->setUsrName(attributes.value("user").toString() );
                 currentDevice->setPasswd(decrypt(attributes.value("pwd").toString() ) );
+
+                nameMap.insert(attributes.value("serial").toString(), attributes.value("name").toString());
 
             }
             else if(reader.name() == "channel")

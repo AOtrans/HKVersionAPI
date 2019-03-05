@@ -73,7 +73,7 @@ TestForm::TestForm(int argc, char *argv[], int w, int h, QWidget *parent) :
     if(sdkInit(this))
     {
         //reload settings from xml file
-        if(!analysis(m_deviceList, config->XML_PATH))
+        if(!analysis(m_deviceList, m_nameMap, config->XML_PATH))
         {
             QMessageBox::warning(this, "error", "load XML file failed");
             qWarning() << "load XML file failed";

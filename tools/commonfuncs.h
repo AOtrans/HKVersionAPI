@@ -26,7 +26,7 @@ QImage cvMat2Image(cv::Mat&);
 QString decrypt(QString encryptStr);
 QString encrypt(QString srcStr);
 bool resetDeviceTreeXml(QMap<QString, DeviceData> &deviceList, QString xmlFilePath);
-bool analysis(QMap<QString, DeviceData> &deviceList, QString xmlFilePath);
+bool analysis(QMap<QString, DeviceData> &deviceList, QMap<QString, QString> &nameMap, QString xmlFilePath);
 //int FrameSave2JPG(AVFrame* pFrame, int width, int height, int id, void *dwUser);
 //AVFrame* buf2Frame(uchar* pBuf, int width ,int height);
 cv::Mat buf2cvMat(uchar* pBuf, int width ,int height);
