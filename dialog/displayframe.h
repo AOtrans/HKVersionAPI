@@ -8,6 +8,7 @@
 #include "tools/commonfuncs.h"
 #include "structs/commonstructs.h"
 #include <QMutex>
+#include <QApplication>
 
 //class PainterEvent;
 
@@ -29,14 +30,7 @@ public:
     bool getBlackbg() const;
     void setBlackbg(bool value);
 
-    bool changeMat(cv::Mat mat)
-    {
-        matlock.lock();
-        frameMat = mat;
-        emit doUpdate();
-        matlock.unlock();
-        return true;
-    }
+    bool changeMat(cv::Mat mat);
 
     QList<BBox> getBboxes() const;
     void setBboxes(const QList<BBox> &value);

@@ -36,6 +36,9 @@ public:
 
     void add2GridLayout(DisplayFrame *);
     void closeChannel(int id, int handle);
+    void channelDiscon(int id, int handle);
+    void channelRecon(int id, int handle);
+    void closeDevice(int id);
 
     void initSth();//sth todo before initalize
 private:
@@ -59,7 +62,8 @@ private:
     QStandardItem* findChannelItem(QString channel, QStandardItem* deviceItem);
 
     void sortFrames();
-
+signals:
+    void updateform();
 private slots:
 //    void on_pbRealPaly_clicked();
 

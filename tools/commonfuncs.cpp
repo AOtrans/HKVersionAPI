@@ -577,10 +577,35 @@ void CALLBACK MessCallBack_V30(LONG lCommand, NET_DVR_ALARMER *pAlarmer, char *p
 
 void CALLBACK ExceptionCallBack(DWORD dwType, LONG lUserID, LONG lHandle, void *pUser)
 {
-    qDebug("ExceptionCallBack lUserID:%d, handle:%d, user data:%p", lUserID, lHandle, pUser);
+    qDebug("ExceptionCallBack lUserID:%d, handle:%d, user data:%p, type:%d", lUserID, lHandle, pUser, dwType);
 
-//    QWidget *parent = (QWidget*)pUser;
-    QMessageBox *mbox = new QMessageBox(QMessageBox::Warning,"ERROR", "");
+    switch(dwType)
+    {
+    case EXCEPTION_EXCHANGE:
+        qWarning() << "ERROR" << "EXCEPTION EXCHANGE!";
+        //form->closeDevice(lUserID);
+        return;
+    case EXCEPTION_RECONNECT:			 //preview reconnect
+        qWarning() << "ERROR" << "Preview reconnect exception!";
+        form->channelDiscon(lUserID, lHandle);
+        return;
+    case EXCEPTION_RELOGIN:
+        qDebug() << "INFO" << "EXCEPTION RELOGIN!";
+        return;
+    case RELOGIN_SUCCESS:
+        qDebug() << "INFO" << "RELOGIN SUCCESS!";
+        return;
+    case RESUME_EXCHANGE:
+        qDebug() << "INFO" << "RESUME EXCHANGE!";
+        return;
+    default:
+        break;
+    }
+
+
+    //    QWidget *parent = (QWidget*)pUser;
+    QMessageBox *mbox = new QMessageBox(QMessageBox::Warning,"ERROR", "", QMessageBox::Close);
+    mbox->setAttribute(Qt::WA_DeleteOnClose);
     mbox->setModal(false);
 
     switch(dwType)
@@ -618,19 +643,18 @@ void CALLBACK ExceptionCallBack(DWORD dwType, LONG lUserID, LONG lHandle, void *
     case EXCEPTION_PREVIEW:			     //Preview exception
         //QMessageBox::information(0, "ERROR", "Preview exception!");
         mbox->setText("Preview exception!");
-        form->closeChannel(lUserID, lHandle);
+        //form->closeChannel(lUserID, lHandle);
+        form->channelDiscon(lUserID, lHandle);
         qWarning() << "ERROR" << "Preview exception!";
         break;
-    case EXCEPTION_RECONNECT:			 //preview reconnect
-        //QMessageBox::information(0, "ERROR", "Preview reconnect exception!");
-        mbox->setText("Preview reconnect exception!");
-        qWarning() << "ERROR" << "Preview reconnect exception!";
-        break;
+
     case PREVIEW_RECONNECTSUCCESS: //Preview reconnect success
         //QMessageBox::information(0, "ERROR", "Preview reconnect success!");
         mbox->setText("Preview reconnect success!");
-        qWarning() << "ERROR" << "Preview reconnect success!";
+        form->channelRecon(lUserID, lHandle);
+        qDebug() << "INFO" << "Preview reconnect success!";
         break;
+
     default:
         break;
     }
@@ -658,7 +682,7 @@ bool sdkInit(QWidget* parent)
 
     //set max timeout
     NET_DVR_SetConnectTime(config->CONNECT_TIMEOUT, 1);
-    NET_DVR_SetReconnect(3000, 0);
+    NET_DVR_SetReconnect(20000);
     //注册接收异常、重连等消息的窗口句柄或回调函数。
     NET_DVR_SetExceptionCallBack_V30(0, NULL, ExceptionCallBack, parent);
 

@@ -65,9 +65,10 @@ void DisplayFrame::paintEvent(QPaintEvent *event)
             }
         }
 
-        cv::cvtColor(frameMat, frameMat, CV_BGR2RGB);
+        cv:: Mat tmp;
+        cv::cvtColor(frameMat, tmp, CV_BGR2RGB);
 
-        float img_aspect = float(frameMat.cols) / float(frameMat.rows);
+        float img_aspect = float(tmp.cols) / float(tmp.rows);
         float frame_aspect = float(this->width()) / float(this->height());
 
         int width = this->width();
@@ -76,12 +77,12 @@ void DisplayFrame::paintEvent(QPaintEvent *event)
         if(img_aspect > frame_aspect)
         {
             width -= 6;
-            painter.drawPixmap(3, (height - width/img_aspect)/2, width, width/img_aspect, QPixmap::fromImage(cvMat2Image(frameMat)) );
+            painter.drawPixmap(3, (height - width/img_aspect)/2, width, width/img_aspect, QPixmap::fromImage(cvMat2Image(tmp)) );
         }
         else
         {
             height -= 6;
-            painter.drawPixmap((width - height*img_aspect)/2, 3, height*img_aspect, height, QPixmap::fromImage(cvMat2Image(frameMat)) );
+            painter.drawPixmap((width - height*img_aspect)/2, 3, height*img_aspect, height, QPixmap::fromImage(cvMat2Image(tmp)) );
         }
     }
     else
@@ -110,6 +111,7 @@ void DisplayFrame::reset()
     setIsPlaying(false);
     setBlackbg(true);
     bboxes.clear();
+    frameMat = cv::Mat();
     update();
 
 }
@@ -122,6 +124,16 @@ bool DisplayFrame::getBlackbg() const
 void DisplayFrame::setBlackbg(bool value)
 {
     blackbg = value;
+}
+
+bool DisplayFrame::changeMat(cv::Mat mat)
+{
+    matlock.lock();
+    frameMat = mat;
+    emit doUpdate();
+    qApp->processEvents();
+    matlock.unlock();
+    return true;
 }
 /*-----------------------------------------------------------*/
 //bool PainterEvent::getBlackbg() const

@@ -21,6 +21,8 @@ TestForm::TestForm(int argc, char *argv[], int w, int h, QWidget *parent) :
     ui(new Ui::TestForm)
 {
     ui->setupUi(this);
+    connect(this, SIGNAL(updateform()), this, SLOT(update()));
+
 
     initSth();
 
@@ -105,6 +107,7 @@ void TestForm::showVideo(cv::Mat img, ChannelData *cdata)
 {
 //    cv::resize(img, img, cv::Size(cdata->frame->width(), cdata->frame->height()));
     cdata->frame->changeMat(img);
+    qApp->processEvents();
     //cdata->frame->update();
 //    cdata->frame->getPainter()->changeMat(img);
 //    cdata->frame->repaint();
@@ -152,7 +155,8 @@ void TestForm::initLeftTree()
     connect(ui->leftTreeView, SIGNAL(expanded(QModelIndex)), this, SLOT(expandTreeClicked(QModelIndex)));
     connect(ui->leftTreeView, SIGNAL(collapsed(QModelIndex)), this, SLOT(expandTreeClicked(QModelIndex)));
 
-    ui->leftTreeView->expandAll();
+    //ui->leftTreeView->expandAll();
+
 
 }
 
@@ -284,6 +288,69 @@ void TestForm::closeChannel(int id, int handle)
                 {
                     stopRealPlay(&qlistchanneldata[i], qlistchanneldata[i].getBindItem());
                 }
+            }
+        }
+    }
+}
+
+void TestForm::channelDiscon(int id, int handle)
+{
+    foreach(QString mapId, m_deviceList.keys())
+    {
+        DeviceData &ddata = m_deviceList[mapId];
+
+        if(ddata.getUsrID() == id)
+        {
+            QList<ChannelData> &qlistchanneldata = ddata.m_qlistchanneldata;
+            for(int i=0; i<qlistchanneldata.size(); i++)
+            {
+                if(qlistchanneldata[i].getRealhandle()==handle)
+                {
+                    qlistchanneldata[i].getBindItem()->setIcon(QIcon(config->WARNING_ICON_1));
+                    //emit updateform();
+                    ui->leftTreeView->update(qlistchanneldata[i].getBindItem()->index());
+                    qApp->processEvents();
+                }
+            }
+        }
+    }
+}
+
+void TestForm::channelRecon(int id, int handle)
+{
+    foreach(QString mapId, m_deviceList.keys())
+    {
+        DeviceData &ddata = m_deviceList[mapId];
+
+        if(ddata.getUsrID() == id)
+        {
+            QList<ChannelData> &qlistchanneldata = ddata.m_qlistchanneldata;
+            for(int i=0; i<qlistchanneldata.size(); i++)
+            {
+                if(qlistchanneldata[i].getRealhandle()==handle)
+                {
+                    qlistchanneldata[i].getBindItem()->setIcon(QIcon(config->CAMERAL_PLAYING_ICON));
+                    //emit updateform();
+                    ui->leftTreeView->update(qlistchanneldata[i].getBindItem()->index());
+                    qApp->processEvents();
+                }
+            }
+        }
+    }
+}
+
+void TestForm::closeDevice(int id)
+{
+    foreach(QString mapId, m_deviceList.keys())
+    {
+        DeviceData &ddata = m_deviceList[mapId];
+
+        if(ddata.getUsrID() == id)
+        {
+            if(id >= 0)
+            {
+                ddata.shutdown();
+                NET_DVR_Logout(id);
             }
         }
     }

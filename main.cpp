@@ -1,4 +1,3 @@
-#include "testform.h"
 #include <QtGui>
 #include <QApplication>
 #include <common.h>
@@ -6,6 +5,7 @@
 #include <QMessageBox>
 #include <QLockFile>
 
+#include "testform.h"
 #include <QDir>
 #include <QTextStream>
 #include "iostream"
