@@ -112,6 +112,12 @@ QList<BBox> GrpcPredictor::predict(QQueue<cv::Mat> &param, QString param2)
             right = width;
         }
 
+        if(left<0 || top<0 || right-left<=0 || bottom-top<=0)
+        {
+            boxes.removeOne(box);
+            continue;
+        }
+
         inputs.clear();
         for(int i=0; i<param.size(); i++)
         {
@@ -181,7 +187,7 @@ QList<BBox> GrpcPredictor::predict(QQueue<cv::Mat> &param, QString param2)
             saver->start();
         }
 
-        for(int i=0; i<boxes.size(); i++)
+        for(int i=0; i<result.size(); i++)
         {
             BBox box;
 

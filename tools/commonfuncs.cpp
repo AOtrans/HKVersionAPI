@@ -347,6 +347,9 @@ void CALLBACK DecCBFun(int lPort,char * pBuf,int nSize,FRAME_INFO * pFrameInfo, 
 
         cv::Mat img = buf2cvMat((uchar*)pBuf, width, height);
 
+        if(img.rows == 0 || img.cols == 0)
+            return;
+
         //qDebug() << matSave2JPG(img, pFrameInfo->dwFrameNum, dwUser);
         ChannelData *cdata = (ChannelData*)dwUser;
         //frame count +1
